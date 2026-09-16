@@ -39,7 +39,7 @@ Sprint 1 มุ่งเน้นการสร้าง CLI Foundation ขอ�
 - [x] ทดสอบ QA Test Cases
 - [x] Review Code
 - [x] สร้าง GitHub Repository
-- [ ] สร้าง Pull Request
+- [x] สร้าง Pull Request
 
 ---
 
@@ -272,7 +272,7 @@ Display Result
 https://github.com/Phanuwatphk/Gaming-Statistics-Dashboard
 
 **Pull Request:**  
-`[Add Sprint 1 Pull Request URL]`
+https://github.com/Phanuwatphk/Gaming-Statistics-Dashboard/pull/2
 
 ---
 
