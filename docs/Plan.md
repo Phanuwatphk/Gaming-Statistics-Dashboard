@@ -64,7 +64,7 @@ Final Project
 | Sprint           | ช่วงเวลา | เป้าหมายหลัก                                     | Status      |
 | ---------------- | -------- | ------------------------------------------------ | ----------- |
 | **Sprint 1**     | Week 12  | Application Foundation และ CLI                   | ✅ Completed |
-| **Sprint 2**     | Week 13  | Web UI + RAWG API + SQLite                       | ⏳ Planned   |
+| **Sprint 2**     | Week 13  | Web UI + RAWG API + SQLite                       | 🚧 In progress |
 | **Sprint 3**     | Week 14  | System Integration และ Core Features             | ⏳ Planned   |
 | **Final Sprint** | Week 15  | Testing, CI/CD, AI Integration และ Final Project | ⏳ Planned   |
 
@@ -135,6 +135,11 @@ Final Project
 เพิ่ม **SQLite Database**
 สำหรับจัดเก็บและจัดการข้อมูลเกม
 
+### Live player counts
+
+แสดงจำนวนผู้เล่นปัจจุบันจาก Steam สำหรับเกมที่จับคู่ Steam App ID ได้ โดยเก็บ
+ผลลัพธ์และเวลาอัปเดตไว้ใน SQLite เพื่อให้ผู้ใช้ทุกคนอ่านข้อมูลชุดเดียวกัน
+
 ## Main Deliverable
 
 Web Dashboard ที่สามารถ:
@@ -147,7 +152,7 @@ Web Dashboard ที่สามารถ:
 
 ## Status
 
-**⏳ Planned**
+**🚧 In progress**
 
 รายละเอียดการดำเนินงานของ Sprint 2:
 

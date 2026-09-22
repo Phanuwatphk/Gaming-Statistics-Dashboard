@@ -1,0 +1,11 @@
+# Local configuration and runtime data
+.env
+data/*.db
+data/*.sqlite
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+
+# Streamlit's local configuration/cache
+.streamlit/secrets.toml

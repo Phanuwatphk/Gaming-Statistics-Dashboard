@@ -204,22 +204,33 @@ Critical Defects : 0
 
 ---
 
-# ⏳ Sprint 2 — Data & Core Logic
+# 🚧 Sprint 2 — Web UI + API + Database
 
-**Status: Planned**
+**Status: In progress**
 
-แผนเบื้องต้น:
+Sprint 2 เพิ่ม Web Dashboard ตาม `docs/Plan.md` แล้ว:
 
-- Data Structure
-- File I/O
-- Load / Save Data
-- Search
-- Filter
-- Sort
-- Extended Statistics
-- Data Error Handling
+- Streamlit dashboard สำหรับแสดง/ค้นหาข้อมูลเกม โดยค้นหา RAWG เพื่อเพิ่มเกมที่ยังไม่มีในคลังได้
+- RAWG API client ที่อ่าน key จาก `RAWG_API_KEY`
+- SQLite สำหรับเก็บข้อมูลเกมที่ดึงจาก API และแสดงข้อมูลที่เก็บไว้ได้ในครั้งถัดไป
+- จำนวนผู้เล่นปัจจุบันบน Steam สำหรับเกมที่จับคู่ Steam ได้ พร้อมเวลาอัปเดตล่าสุด
 
-รายละเอียดของ Scope สามารถปรับเปลี่ยนได้เมื่อเริ่ม Sprint 2
+## Run Sprint 2
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+cp .env.example .env
+# ใส่ RAWG API key ของคุณใน .env
+streamlit run src/app.py
+```
+
+ฐานข้อมูลเริ่มต้นอยู่ที่ `data/gaming_statistics.db` และจะไม่ถูก commit. สามารถเปลี่ยนตำแหน่งได้ด้วยตัวแปร `GAMING_DASHBOARD_DB`.
+
+เมื่อผู้ใช้เปิด Dashboard ระบบจะตรวจและอัปเดต Top 50 เกมที่มีผู้เล่นสูงสุดจาก Steam ลงฐานข้อมูลกลาง โดยค่าเริ่มต้นจะใช้ข้อมูลร่วมกันไม่เกิน 15 นาที (`PLAYER_REFRESH_MINUTES=15`) เพื่อไม่เรียก API ซ้ำเมื่อมีผู้ใช้หลายคนเข้าพร้อมกัน. เกมที่ผู้ใช้ค้นหาจะถูกเพิ่มเข้า SQLite แยกต่างหากเพื่อใช้งานในภายหลัง.
+
+รัน automated tests ได้ด้วย `python -m pytest -q` หลังจาก activate virtual environment.
 
 ---
 
