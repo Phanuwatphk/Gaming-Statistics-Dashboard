@@ -38,41 +38,7 @@ def render_dashboard(game_service: GameService) -> None:
     """Render dashboard pages using data supplied by GameService."""
     apply_dashboard_styles()
     _initialize_navigation_state()
-    if st.session_state.pop("scroll_to_top", False):
-        components.html(
-            """
-            <script>
-            const scrollToTop = () => {
-                try {
-                    const parentWindow = window.parent;
-                    const parentDocument = parentWindow.document;
-                    const targets = [
-                        parentWindow,
-                        parentDocument.documentElement,
-                        parentDocument.body,
-                        parentDocument.querySelector('[data-testid="stAppViewContainer"]'),
-                        parentDocument.querySelector('[data-testid="stMain"]'),
-                        parentDocument.querySelector('.main'),
-                    ];
-                    targets.filter(Boolean).forEach((target) =>
-                        target.scrollTo({top: 0, left: 0, behavior: 'auto'})
-                    );
-                } catch (_) {
-                    window.scrollTo({top: 0, left: 0, behavior: 'auto'});
-                }
-            };
-
-            // Streamlit restores its scroll position while it is committing a
-            // rerun. Repeat after that work completes so long card pages do
-            // not overwrite this reset.
-            scrollToTop();
-            requestAnimationFrame(() => requestAnimationFrame(scrollToTop));
-            setTimeout(scrollToTop, 150);
-            setTimeout(scrollToTop, 500);
-            </script>
-            """,
-            height=0,
-        )
+    should_scroll_to_top = st.session_state.pop("scroll_to_top", False)
     _render_sidebar()
 
     page = st.session_state.dashboard_page
@@ -90,6 +56,9 @@ def render_dashboard(game_service: GameService) -> None:
         _render_players_page(game_service)
     elif page == "detail":
         _render_detail_page(game_service)
+
+    if should_scroll_to_top:
+        _render_scroll_reset()
 
 
 def _initialize_navigation_state() -> None:
@@ -513,3 +482,43 @@ def _go_to(page: str) -> None:
 def _scroll_to_top() -> None:
     """Schedule a top-of-page viewport reset for the following Streamlit run."""
     st.session_state.scroll_to_top = True
+
+
+def _render_scroll_reset() -> None:
+    """Reset Streamlit's main and sidebar scroll containers after a rerun."""
+    components.html(
+        """
+        <script>
+        const scrollToTop = () => {
+            try {
+                const parentWindow = window.parent;
+                const parentDocument = parentWindow.document;
+                const targets = [
+                    parentWindow,
+                    parentDocument.scrollingElement,
+                    parentDocument.documentElement,
+                    parentDocument.body,
+                    parentDocument.querySelector('[data-testid="stAppViewContainer"]'),
+                    parentDocument.querySelector('[data-testid="stApp"]'),
+                    parentDocument.querySelector('[data-testid="stMain"]'),
+                    parentDocument.querySelector('[data-testid="stSidebar"]'),
+                    parentDocument.querySelector('[data-testid="stSidebarContent"]'),
+                    parentDocument.querySelector('.main'),
+                ];
+                targets.filter(Boolean).forEach((target) => {
+                    target.scrollTop = 0;
+                    target.scrollLeft = 0;
+                    target.scrollTo?.({top: 0, left: 0, behavior: 'auto'});
+                });
+            } catch (_) {
+                window.scrollTo({top: 0, left: 0, behavior: 'auto'});
+            }
+        };
+
+        // This component is rendered after the selected page. Wait until the
+        // next paint, reset once, then leave scrolling entirely to the user.
+        requestAnimationFrame(() => requestAnimationFrame(scrollToTop));
+        </script>
+        """,
+        height=0,
+    )
