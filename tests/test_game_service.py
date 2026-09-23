@@ -85,9 +85,10 @@ def test_service_refreshes_and_persists_available_steam_player_counts(tmp_path):
 
 
 class FakeRawgSearchClient:
-    def search_games(self, search_term: str, page_size: int):
+    def search_games(self, search_term: str, page_size: int, page: int = 1):
         assert search_term == "Minecraft"
-        assert page_size == 100
+        assert page_size == 40
+        assert page == 1
         return [{"id": 70, "name": "Minecraft", "genres": [], "platforms": []}]
 
 
@@ -132,6 +133,30 @@ def test_service_imports_from_rawg_when_sqlite_has_no_match(tmp_path):
     assert [game["name"] for game in service.search_or_import_games("Minecraft")] == ["Minecraft"]
 
 
+def test_service_imports_and_returns_a_later_catalog_page_in_api_order(tmp_path):
+    class FakePagedDiscoveryClient:
+        def __init__(self):
+            self.calls = []
+
+        def fetch_games(self, page_size: int, ordering: str | None = None, page: int = 1):
+            self.calls.append((page_size, ordering, page))
+            first_id = (page - 1) * 40 + 1
+            return [
+                {"id": game_id, "name": f"Game {game_id}", "genres": [], "platforms": []}
+                for game_id in range(first_id, first_id + 40)
+            ]
+
+    client = FakePagedDiscoveryClient()
+    service = GameService(client, GameDatabase(tmp_path / "games.db"))
+
+    games = service.import_catalog_page(2, page_size=50)
+
+    assert [game["game_id"] for game in games] == list(range(51, 101))
+    assert client.calls == [(40, "-added", 2), (40, "-added", 3)]
+    assert games[0]["current_players"] is None
+    assert len(service.get_games()) == 50
+
+
 class FakeSteamTopClient:
     def get_most_played_games(self, limit: int):
         assert limit == 100
@@ -166,9 +191,10 @@ def test_service_refreshes_the_live_top_games_for_home(tmp_path):
 
 
 class FakeDiscoveryClient:
-    def fetch_games(self, page_size: int, ordering: str | None = None):
-        assert page_size == 100
+    def fetch_games(self, page_size: int, ordering: str | None = None, page: int = 1):
+        assert page_size == 40
         assert ordering == "-added"
+        assert page == 1
         return [
             {
                 "id": 10,

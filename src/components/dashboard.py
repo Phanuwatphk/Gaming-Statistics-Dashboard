@@ -4,9 +4,10 @@ from __future__ import annotations
 
 from collections import defaultdict
 from html import escape
-from typing import Any
+from typing import Any, Callable
 
 import streamlit as st
+import streamlit.components.v1 as components
 
 if __package__ and __package__.startswith("src."):
     from src.api.rawg_api import RawgApiError
@@ -30,13 +31,48 @@ NAVIGATION = (
     ("top_rated", "Top Rated"),
     ("players", "Live Players"),
 )
-GAMES_PER_PAGE = 100
+GAMES_PER_PAGE = 50
 
 
 def render_dashboard(game_service: GameService) -> None:
     """Render dashboard pages using data supplied by GameService."""
     apply_dashboard_styles()
     _initialize_navigation_state()
+    if st.session_state.pop("scroll_to_top", False):
+        components.html(
+            """
+            <script>
+            const scrollToTop = () => {
+                try {
+                    const parentWindow = window.parent;
+                    const parentDocument = parentWindow.document;
+                    const targets = [
+                        parentWindow,
+                        parentDocument.documentElement,
+                        parentDocument.body,
+                        parentDocument.querySelector('[data-testid="stAppViewContainer"]'),
+                        parentDocument.querySelector('[data-testid="stMain"]'),
+                        parentDocument.querySelector('.main'),
+                    ];
+                    targets.filter(Boolean).forEach((target) =>
+                        target.scrollTo({top: 0, left: 0, behavior: 'auto'})
+                    );
+                } catch (_) {
+                    window.scrollTo({top: 0, left: 0, behavior: 'auto'});
+                }
+            };
+
+            // Streamlit restores its scroll position while it is committing a
+            // rerun. Repeat after that work completes so long card pages do
+            // not overwrite this reset.
+            scrollToTop();
+            requestAnimationFrame(() => requestAnimationFrame(scrollToTop));
+            setTimeout(scrollToTop, 150);
+            setTimeout(scrollToTop, 500);
+            </script>
+            """,
+            height=0,
+        )
     _render_sidebar()
 
     page = st.session_state.dashboard_page
@@ -78,7 +114,9 @@ def _render_sidebar() -> None:
 
 
 def _render_home(game_service: GameService) -> None:
-    games = game_service.get_popular_games()
+    games = st.session_state.get("home-page-games")
+    if games is None:
+        games = game_service.get_popular_games()[:GAMES_PER_PAGE]
     live_games = game_service.get_live_top_games()
     _page_heading("Popular Games", "Popular and widely played games saved from the latest RAWG discovery update.")
 
@@ -89,7 +127,15 @@ def _render_home(game_service: GameService) -> None:
     latest_update = max((game["players_updated_at"] or "" for game in live_games), default="")
     _render_top_player_stat(sum(current_players), latest_update)
     st.markdown("### Popular games")
-    _render_paginated_game_grid(games, page_key="home", columns_per_row=4, key_prefix="home")
+    _render_remote_paginated_game_grid(
+        games,
+        page_key="home",
+        columns_per_row=4,
+        key_prefix="home",
+        fetch_page=lambda page: game_service.import_catalog_page(
+            page, page_size=GAMES_PER_PAGE
+        ),
+    )
 
 
 def _render_games_page(game_service: GameService) -> None:
@@ -148,25 +194,50 @@ def _render_search_page(game_service: GameService) -> None:
             "Game title", placeholder="For example: Hades, Portal, or Minecraft"
         )
         submitted = st.form_submit_button("Search", type="primary")
-    if not search_term.strip():
+    if submitted and search_term.strip():
+        try:
+            with st.spinner("Searching games..."):
+                local_results = game_service.search_games(search_term)
+                st.session_state.search_results_remote = not bool(local_results)
+                st.session_state.search_results_games = (
+                    game_service.search_and_import_games(
+                        search_term, page_size=GAMES_PER_PAGE
+                    )
+                    if st.session_state.search_results_remote
+                    else local_results
+                )
+                st.session_state.search_results_term = search_term.strip()
+                st.session_state.search_results_page = 1
+                st.session_state["remote-pagination-search-results"] = 1
+        except (RawgApiError, DatabaseError, ValueError) as error:
+            st.error(str(error))
+            return
+
+    active_term = st.session_state.get("search_results_term", "")
+    if not search_term.strip() and not active_term:
         _render_empty_state("Ready to search", "Enter a game title above to see results.")
         return
-    if not submitted:
+    if not active_term:
         return
-
-    try:
-        with st.spinner("Searching games..."):
-            games = game_service.search_or_import_games(search_term)
-    except (RawgApiError, DatabaseError, ValueError) as error:
-        st.error(str(error))
-        return
+    games = st.session_state.search_results_games
     if not games:
-        _render_empty_state("No matching games", f'No games matched “{search_term.strip()}”.')
+        _render_empty_state("No matching games", f'No games matched “{active_term}”.')
         return
-    st.caption(f'Results for “{search_term.strip()}” · {len(games)} game(s)')
-    _render_paginated_game_grid(
-        games, page_key="search-results", columns_per_row=1, key_prefix="search"
-    )
+    st.caption(f'Results for “{active_term}” · {len(games)} game(s)')
+    if st.session_state.get("search_results_remote", False):
+        _render_remote_paginated_game_grid(
+            games,
+            page_key="search-results",
+            columns_per_row=1,
+            key_prefix="search",
+            fetch_page=lambda page: game_service.import_search_page(
+                active_term, page, page_size=GAMES_PER_PAGE
+            ),
+        )
+    else:
+        _render_paginated_game_grid(
+            games, page_key="search-results", columns_per_row=1, key_prefix="search"
+        )
 
 
 def _render_genres_page(game_service: GameService) -> None:
@@ -278,33 +349,89 @@ def _render_paginated_game_grid(
     key_prefix: str = "games",
     show_rank: bool = False,
 ) -> None:
-    """Render exactly up to 100 games and page through the remaining local records."""
+    """Render exactly up to 50 games and page through the remaining local records."""
     total_pages = max(1, (len(games) + GAMES_PER_PAGE - 1) // GAMES_PER_PAGE)
     state_key = f"pagination-{page_key}"
     current_page = min(st.session_state.get(state_key, 1), total_pages)
     st.session_state[state_key] = current_page
     start = (current_page - 1) * GAMES_PER_PAGE
-    _render_game_grid(
-        games[start : start + GAMES_PER_PAGE],
-        columns_per_row=columns_per_row,
-        key_prefix=f"{key_prefix}-page-{current_page}",
-        show_rank=show_rank,
-        rank_start=start + 1,
-    )
+    cards_container = st.empty()
+    with cards_container.container():
+        _render_game_grid(
+            games[start : start + GAMES_PER_PAGE],
+            columns_per_row=columns_per_row,
+            key_prefix=f"{key_prefix}-page-{current_page}",
+            show_rank=show_rank,
+            rank_start=start + 1,
+        )
     if total_pages == 1:
         return
 
     previous_column, page_column, next_column = st.columns((1, 2, 1))
     with previous_column:
         if st.button("← Previous", key=f"{state_key}-previous", disabled=current_page == 1):
+            cards_container.empty()
             st.session_state[state_key] = current_page - 1
+            _scroll_to_top()
             st.rerun()
     with page_column:
         st.markdown(f"<p style='text-align:center'>Page {current_page} of {total_pages}</p>", unsafe_allow_html=True)
     with next_column:
         if st.button("Next →", key=f"{state_key}-next", disabled=current_page == total_pages):
+            cards_container.empty()
             st.session_state[state_key] = current_page + 1
+            _scroll_to_top()
             st.rerun()
+
+
+def _render_remote_paginated_game_grid(
+    games: list[dict[str, Any]],
+    page_key: str,
+    fetch_page: Callable[[int], list[dict[str, Any]]],
+    columns_per_row: int = 3,
+    key_prefix: str = "games",
+) -> None:
+    """Render one 50-game API page and load another only after navigation."""
+    state_key = f"remote-pagination-{page_key}"
+    current_page = st.session_state.get(state_key, 1)
+    cards_container = st.empty()
+    with cards_container.container():
+        _render_game_grid(
+            games[:GAMES_PER_PAGE],
+            columns_per_row=columns_per_row,
+            key_prefix=f"{key_prefix}-page-{current_page}",
+            rank_start=(current_page - 1) * GAMES_PER_PAGE + 1,
+        )
+
+    previous_column, page_column, next_column = st.columns((1, 2, 1))
+    with previous_column:
+        previous = st.button("← Previous", key=f"{state_key}-previous", disabled=current_page == 1)
+    with page_column:
+        st.markdown(f"<p style='text-align:center'>Page {current_page}</p>", unsafe_allow_html=True)
+    with next_column:
+        next_page = st.button(
+            "Next →", key=f"{state_key}-next", disabled=len(games) < GAMES_PER_PAGE
+        )
+
+    requested_page = current_page - 1 if previous else current_page + 1 if next_page else None
+    if requested_page is None or requested_page == current_page:
+        return
+    cards_container.empty()
+    try:
+        with st.spinner("Loading games..."):
+            page_games = fetch_page(requested_page)
+    except (RawgApiError, DatabaseError, ValueError) as error:
+        st.error(str(error))
+        return
+    st.session_state[state_key] = requested_page
+    st.session_state[f"{page_key}-page-games"] = page_games
+    if page_key == "search-results":
+        st.session_state.search_results_games = page_games
+        st.session_state.search_results_page = requested_page
+    elif page_key == "home":
+        st.session_state["home-page-games"] = page_games
+    _scroll_to_top()
+    st.rerun()
 
 
 def _render_top_player_stat(total_players: int, latest_update: str) -> None:
@@ -379,4 +506,10 @@ def _display_timestamp(value: str) -> str:
 
 def _go_to(page: str) -> None:
     st.session_state.dashboard_page = page
+    _scroll_to_top()
     st.rerun()
+
+
+def _scroll_to_top() -> None:
+    """Schedule a top-of-page viewport reset for the following Streamlit run."""
+    st.session_state.scroll_to_top = True

@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS games (
     current_players INTEGER,
     players_updated_at TEXT,
     catalog_updated_at TEXT,
+    catalog_rank INTEGER,
     is_live_top INTEGER NOT NULL DEFAULT 0,
     live_rank INTEGER
 )
@@ -42,6 +43,7 @@ GAME_COLUMN_MIGRATIONS = {
     "current_players": "INTEGER",
     "players_updated_at": "TEXT",
     "catalog_updated_at": "TEXT",
+    "catalog_rank": "INTEGER",
     "is_live_top": "INTEGER NOT NULL DEFAULT 0",
     "live_rank": "INTEGER",
 }
@@ -110,6 +112,36 @@ class GameDatabase:
             raise DatabaseError("ไม่สามารถบันทึกข้อมูลเกมลง SQLite ได้") from error
         return len(rows)
 
+    def save_catalog_games(
+        self,
+        games: Iterable[dict[str, Any]],
+        updated_at: str,
+        start_rank: int = 1,
+        replace_snapshot: bool = False,
+    ) -> int:
+        """Save a RAWG discovery page while preserving its API position.
+
+        ``catalog_rank`` lets Home display consecutive API pages (1–100,
+        then 101–200) even though the same database also stores searches and
+        library entries with unrelated sort orders.
+        """
+        records = list(games)
+        saved = self.insert_games(records, updated_at=updated_at)
+        if not records:
+            return saved
+        try:
+            with self.connect() as connection:
+                self._prepare_schema(connection)
+                if replace_snapshot:
+                    connection.execute("UPDATE games SET catalog_rank = NULL")
+                connection.executemany(
+                    "UPDATE games SET catalog_rank = ? WHERE game_id = ?",
+                    [(start_rank + index, game["game_id"]) for index, game in enumerate(records)],
+                )
+        except sqlite3.Error as error:
+            raise DatabaseError("ไม่สามารถบันทึกลำดับเกมยอดนิยมลง SQLite ได้") from error
+        return saved
+
     def get_games(self) -> list[dict[str, Any]]:
         """Read all locally stored games in a stable, readable order."""
         try:
@@ -124,6 +156,23 @@ class GameDatabase:
         except sqlite3.Error as error:
             raise DatabaseError("ไม่สามารถอ่านข้อมูลเกมจาก SQLite ได้") from error
         return [self._game_from_row(row) for row in rows]
+
+    def get_games_by_ids(self, game_ids: Iterable[int]) -> list[dict[str, Any]]:
+        """Read stored games in the caller's requested order."""
+        ids = list(dict.fromkeys(game_ids))
+        if not ids:
+            return []
+        placeholders = ", ".join("?" for _ in ids)
+        try:
+            with self.connect() as connection:
+                self._prepare_schema(connection)
+                rows = connection.execute(
+                    f"SELECT * FROM games WHERE game_id IN ({placeholders})", ids
+                ).fetchall()
+        except sqlite3.Error as error:
+            raise DatabaseError("ไม่สามารถอ่านข้อมูลเกมจาก SQLite ได้") from error
+        games_by_id = {row["game_id"]: self._game_from_row(row) for row in rows}
+        return [games_by_id[game_id] for game_id in ids if game_id in games_by_id]
 
     def search_games(self, search_term: str) -> list[dict[str, Any]]:
         """Find games by a case-insensitive literal partial name match."""
@@ -289,7 +338,8 @@ class GameDatabase:
                     """
                     SELECT * FROM games
                     WHERE game_id > 0
-                    ORDER BY ratings_count IS NULL, ratings_count DESC,
+                    ORDER BY catalog_rank IS NULL, catalog_rank ASC,
+                             ratings_count IS NULL, ratings_count DESC,
                              released IS NULL, released DESC, catalog_updated_at DESC
                     """
                 ).fetchall()
@@ -349,6 +399,9 @@ class GameDatabase:
     @staticmethod
     def _game_from_row(row: sqlite3.Row) -> dict[str, Any]:
         game = dict(row)
+        # This is ordering metadata for the Home feed, not a game attribute
+        # consumed by the rest of the dashboard.
+        game.pop("catalog_rank", None)
         game["genres"] = _decode_list(game["genres"])
         game["platforms"] = _decode_list(game["platforms"])
         return game

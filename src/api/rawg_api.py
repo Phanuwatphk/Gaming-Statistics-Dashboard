@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 
 RAWG_GAMES_URL = "https://api.rawg.io/api/games"
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
+RAWG_MAX_PAGE_SIZE = 40
 
 
 class RawgApiError(RuntimeError):
@@ -39,19 +40,23 @@ class RawgApiClient:
         self.timeout = timeout
 
     def fetch_games(
-        self, page_size: int = 20, ordering: str | None = None
+        self, page_size: int = 20, ordering: str | None = None, page: int = 1
     ) -> list[dict[str, Any]]:
         """Return RAWG's default game listing or raise a user-friendly API error."""
         return self._fetch_games(
-            page_size, search_term=None, require_results=True, ordering=ordering
+            page_size, search_term=None, require_results=True, ordering=ordering, page=page
         )
 
-    def search_games(self, search_term: str, page_size: int = 20) -> list[dict[str, Any]]:
+    def search_games(
+        self, search_term: str, page_size: int = 20, page: int = 1
+    ) -> list[dict[str, Any]]:
         """Search RAWG by title; an unmatched title is a valid empty result."""
         term = search_term.strip()
         if not term:
             return []
-        return self._fetch_games(page_size, search_term=term, require_results=False, ordering=None)
+        return self._fetch_games(
+            page_size, search_term=term, require_results=False, ordering=None, page=page
+        )
 
     def _fetch_games(
         self,
@@ -59,6 +64,7 @@ class RawgApiClient:
         search_term: str | None,
         require_results: bool,
         ordering: str | None,
+        page: int,
     ) -> list[dict[str, Any]]:
         if not self.api_key.strip():
             raise RawgConfigurationError(
@@ -66,20 +72,25 @@ class RawgApiClient:
             )
         if not 1 <= page_size <= 100:
             raise ValueError("จำนวนเกมที่ดึงต้องอยู่ระหว่าง 1 ถึง 100")
+        if page < 1:
+            raise ValueError("หน้าข้อมูลต้องเริ่มที่ 1")
 
         games: list[dict[str, Any]] = []
-        # RAWG permits at most 40 records per HTTP request. Keep that API
-        # detail here so callers can request the dashboard's 100-record page.
-        for page in range(1, (page_size - 1) // 40 + 2):
-            requested_size = min(40, page_size - len(games))
+        # RAWG page offsets depend on ``page_size``. For a multi-request
+        # result, keep every request at RAWG's maximum of 40 records so page
+        # 2 always follows page 1 instead of overlapping it.
+        for api_page in range(page, page + (page_size - 1) // RAWG_MAX_PAGE_SIZE + 1):
+            requested_size = (
+                page_size if page_size <= RAWG_MAX_PAGE_SIZE else RAWG_MAX_PAGE_SIZE
+            )
             try:
                 params = {"key": self.api_key.strip(), "page_size": requested_size}
                 if search_term:
                     params["search"] = search_term
                 if ordering:
                     params["ordering"] = ordering
-                if page > 1:
-                    params["page"] = page
+                if api_page > 1:
+                    params["page"] = api_page
                 response = self.session.get(
                     RAWG_GAMES_URL,
                     params=params,

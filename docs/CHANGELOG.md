@@ -2,6 +2,38 @@
 
 All notable changes to the Gaming Statistics Dashboard project will be documented in this file.
 
+## [Unreleased] - Dashboard pagination and data snapshots
+
+### Added
+
+- Added 50-card pagination for Home, Game Library, Search, Genres, Top Rated,
+  and Live Players.
+- Added Previous/Next navigation for remote RAWG result pages on Home and Search.
+- Added persistent RAWG catalog positions in SQLite so Home retains the API order
+  across pages.
+- Added ordered database retrieval by game ID for preserving the API response order.
+- Added a configurable RAWG page argument to the RAWG client.
+- Added tests for fixed-size RAWG page requests and consecutive 50-game windows.
+
+### Changed
+
+- Changing a navigation page or a list page now returns the viewport to the top.
+- Home continues its popular-game feed from RAWG after the stored page instead of
+  only paginating the local list.
+- Search now distinguishes local results from RAWG results: local matches paginate
+  only in SQLite, while remote results request subsequent RAWG pages.
+- RAWG multi-request reads use fixed 40-record API pages before slicing the
+  requested display window, preventing duplicate or skipped games at page bounds.
+- Updated `.env.example` comments to describe the RAWG key, shared refresh interval,
+  and optional SQLite database location.
+
+### Fixed
+
+- Fixed inconsistent Home ordering caused by sorting a mixed SQLite game library;
+  the RAWG discovery sequence is now stored separately from general library order.
+- Fixed long card pages sometimes remaining at the old scroll position after a
+  Streamlit rerun.
+
 ## [v0.1.0] - Sprint 1: CLI Foundation
 
 ### Added

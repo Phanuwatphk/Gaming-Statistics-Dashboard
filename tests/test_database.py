@@ -49,6 +49,37 @@ def test_database_lists_game_library_by_latest_catalog_update(tmp_path):
     assert [game["name"] for game in database.get_games()] == ["Newer", "Older"]
 
 
+def test_database_keeps_rawg_catalogue_in_api_order(tmp_path):
+    database = GameDatabase(tmp_path / "games.db")
+    database.save_catalog_games(
+        [sample_game(3, "Third"), sample_game(1, "First")],
+        updated_at="2026-09-23T09:00:00+07:00",
+        start_rank=101,
+    )
+    database.save_catalog_games(
+        [sample_game(2, "Second")],
+        updated_at="2026-09-23T10:00:00+07:00",
+        start_rank=1,
+        replace_snapshot=False,
+    )
+
+    assert [game["name"] for game in database.get_popular_games()] == [
+        "Second",
+        "Third",
+        "First",
+    ]
+
+
+def test_database_reads_selected_games_in_requested_order(tmp_path):
+    database = GameDatabase(tmp_path / "games.db")
+    database.insert_games([sample_game(1, "First"), sample_game(2, "Second")])
+
+    games = database.get_games_by_ids([2, 1, 999])
+
+    assert [game["name"] for game in games] == ["Second", "First"]
+    assert games[0]["current_players"] is None
+
+
 def test_database_search_is_partial_case_insensitive_and_blank_is_safe(tmp_path):
     database = GameDatabase(tmp_path / "games.db")
     database.insert_games([sample_game(name="Portal 2"), sample_game(2, "Hades")])

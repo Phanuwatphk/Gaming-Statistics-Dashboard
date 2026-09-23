@@ -37,6 +37,47 @@ def test_search_games_sends_title_and_allows_an_empty_result():
     }
 
 
+def test_fetch_games_requests_a_later_rawg_page():
+    response = Mock()
+    response.json.return_value = {"results": [{"id": 101, "name": "Later game"}]}
+    session = Mock()
+    session.get.return_value = response
+    client = RawgApiClient(api_key="test-key", session=session)
+
+    assert client.fetch_games(10, ordering="-added", page=2) == [
+        {"id": 101, "name": "Later game"}
+    ]
+    assert session.get.call_args.kwargs["params"] == {
+        "key": "test-key",
+        "page_size": 10,
+        "ordering": "-added",
+        "page": 2,
+    }
+
+
+def test_fetch_games_uses_fixed_rawg_page_sizes_for_a_large_result():
+    responses = []
+    for page in range(1, 4):
+        response = Mock()
+        first_id = (page - 1) * 40 + 1
+        response.json.return_value = {
+            "results": [{"id": game_id, "name": f"Game {game_id}"} for game_id in range(first_id, first_id + 40)]
+        }
+        responses.append(response)
+    session = Mock()
+    session.get.side_effect = responses
+    client = RawgApiClient(api_key="test-key", session=session)
+
+    games = client.fetch_games(100)
+
+    assert [game["id"] for game in games] == list(range(1, 101))
+    assert [call.kwargs["params"] for call in session.get.call_args_list] == [
+        {"key": "test-key", "page_size": 40},
+        {"key": "test-key", "page_size": 40, "page": 2},
+        {"key": "test-key", "page_size": 40, "page": 3},
+    ]
+
+
 def test_fetch_games_converts_http_error_to_clear_error():
     response = Mock()
     response.raise_for_status.side_effect = requests.HTTPError(

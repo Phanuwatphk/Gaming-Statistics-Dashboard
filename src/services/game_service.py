@@ -4,16 +4,17 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
-from typing import Any
+from math import ceil
+from typing import Any, Callable
 
 if __package__ and __package__.startswith("src."):
-    from src.api.rawg_api import RawgApiClient
+    from src.api.rawg_api import RAWG_MAX_PAGE_SIZE, RawgApiClient
     from src.api.steam_api import SteamApiClient, SteamApiError, SteamConnectionError
     from src.database.database import GameDatabase
     from src.utils.data_processing import process_games
     from src.utils.time_utils import thailand_now
 else:  # Supports imports when Streamlit runs src/app.py as a script.
-    from api.rawg_api import RawgApiClient
+    from api.rawg_api import RAWG_MAX_PAGE_SIZE, RawgApiClient
     from api.steam_api import SteamApiClient, SteamApiError, SteamConnectionError
     from database.database import GameDatabase
     from utils.data_processing import process_games
@@ -105,10 +106,33 @@ class GameService:
 
     def search_and_import_games(self, search_term: str, page_size: int = PAGE_SIZE) -> list[dict[str, Any]]:
         """Find titles in RAWG and make their normalized data available locally."""
-        raw_games = self.api_client.search_games(search_term, page_size)
+        raw_games = _fetch_rawg_window(
+            lambda rawg_page: self.api_client.search_games(
+                search_term, RAWG_MAX_PAGE_SIZE, page=rawg_page
+            ),
+            display_page=1,
+            page_size=page_size,
+        )
         games = process_games(raw_games)
         self.database.insert_games(games, updated_at=thailand_now().isoformat())
         return self.database.search_games(search_term)
+
+    def import_search_page(
+        self, search_term: str, page: int, page_size: int = PAGE_SIZE
+    ) -> list[dict[str, Any]]:
+        """Fetch one later RAWG search page, save it, and retain RAWG's order."""
+        if page < 1:
+            raise ValueError("หน้าข้อมูลต้องเริ่มที่ 1")
+        raw_games = _fetch_rawg_window(
+            lambda rawg_page: self.api_client.search_games(
+                search_term, RAWG_MAX_PAGE_SIZE, page=rawg_page
+            ),
+            display_page=page,
+            page_size=page_size,
+        )
+        games = process_games(raw_games)
+        self.database.insert_games(games, updated_at=thailand_now().isoformat())
+        return self.database.get_games_by_ids(game["game_id"] for game in games)
 
     def refresh_current_players(
         self,
@@ -166,11 +190,39 @@ class GameService:
         # ``-added`` is RAWG's popularity signal (how often a game is added
         # to player collections), making Home a discovery feed rather than a
         # duplicate of Steam's live-player chart.
-        raw_games = self.api_client.fetch_games(PAGE_SIZE, ordering="-added")
+        raw_games = _fetch_rawg_window(
+            lambda rawg_page: self.api_client.fetch_games(
+                RAWG_MAX_PAGE_SIZE, ordering="-added", page=rawg_page
+            ),
+            display_page=1,
+            page_size=PAGE_SIZE,
+        )
         games = process_games(raw_games)
-        saved = self.database.insert_games(games, updated_at=now.isoformat())
+        saved = self.database.save_catalog_games(
+            games, updated_at=now.isoformat(), replace_snapshot=True
+        )
         self.database.set_metadata("catalog_last_refresh", now.isoformat())
         return CatalogRefreshResult(saved)
+
+    def import_catalog_page(self, page: int, page_size: int = PAGE_SIZE) -> list[dict[str, Any]]:
+        """Fetch, persist, and return one later page of RAWG popular discoveries."""
+        if page < 1:
+            raise ValueError("หน้าข้อมูลต้องเริ่มที่ 1")
+        raw_games = _fetch_rawg_window(
+            lambda rawg_page: self.api_client.fetch_games(
+                RAWG_MAX_PAGE_SIZE, ordering="-added", page=rawg_page
+            ),
+            display_page=page,
+            page_size=page_size,
+        )
+        games = process_games(raw_games)
+        self.database.save_catalog_games(
+            games,
+            updated_at=thailand_now().isoformat(),
+            start_rank=(page - 1) * page_size + 1,
+            replace_snapshot=page == 1,
+        )
+        return self.database.get_games_by_ids(game["game_id"] for game in games)
 
     def refresh_live_top_games(
         self, minimum_interval: timedelta = timedelta(minutes=15), force: bool = False
@@ -202,3 +254,28 @@ def _is_fresh(value: str | None, now: datetime, interval: timedelta) -> bool:
     if last_refresh.tzinfo is None:
         last_refresh = last_refresh.replace(tzinfo=UTC)
     return now - last_refresh < interval
+
+
+def _fetch_rawg_window(
+    fetch_rawg_page: Callable[[int], list[dict[str, Any]]],
+    display_page: int,
+    page_size: int,
+) -> list[dict[str, Any]]:
+    """Return one display-sized window from RAWG's fixed 40-record pages."""
+    if display_page < 1:
+        raise ValueError("หน้าข้อมูลต้องเริ่มที่ 1")
+    if page_size < 1:
+        raise ValueError("จำนวนเกมต่อหน้าต้องมากกว่า 0")
+
+    start = (display_page - 1) * page_size
+    first_rawg_page = start // RAWG_MAX_PAGE_SIZE + 1
+    skip = start % RAWG_MAX_PAGE_SIZE
+    rawg_pages_needed = ceil((skip + page_size) / RAWG_MAX_PAGE_SIZE)
+    games: list[dict[str, Any]] = []
+
+    for rawg_page in range(first_rawg_page, first_rawg_page + rawg_pages_needed):
+        rawg_games = fetch_rawg_page(rawg_page)
+        games.extend(rawg_games)
+        if len(rawg_games) < RAWG_MAX_PAGE_SIZE:
+            break
+    return games[skip : skip + page_size]
