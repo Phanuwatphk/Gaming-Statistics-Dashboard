@@ -11,13 +11,16 @@ if __package__ and __package__.startswith("src."):
     from src.api.steam_api import SteamApiClient, SteamApiError, SteamConnectionError
     from src.database.database import GameDatabase
     from src.utils.data_processing import process_games
+    from src.utils.time_utils import thailand_now
 else:  # Supports imports when Streamlit runs src/app.py as a script.
     from api.rawg_api import RawgApiClient
     from api.steam_api import SteamApiClient, SteamApiError, SteamConnectionError
     from database.database import GameDatabase
     from utils.data_processing import process_games
+    from utils.time_utils import thailand_now
 
-LIVE_TOP_GAMES_LIMIT = 50
+PAGE_SIZE = 100
+LIVE_TOP_GAMES_LIMIT = PAGE_SIZE
 
 
 @dataclass(frozen=True)
@@ -46,6 +49,14 @@ class LiveTopRefreshResult:
     skipped: bool = False
 
 
+@dataclass(frozen=True)
+class CatalogRefreshResult:
+    """Outcome of refreshing the locally stored RAWG discovery catalogue."""
+
+    saved: int
+    skipped: bool = False
+
+
 class GameService:
     """Provide dashboard-ready game data without exposing API or SQL details."""
 
@@ -60,11 +71,11 @@ class GameService:
         self.steam_client = steam_client or SteamApiClient()
         self.database.initialize()
 
-    def sync_games(self, page_size: int = 20) -> SyncResult:
+    def sync_games(self, page_size: int = PAGE_SIZE) -> SyncResult:
         """Fetch RAWG data, normalize it, and save it to SQLite."""
         raw_games = self.api_client.fetch_games(page_size)
         games = process_games(raw_games)
-        saved = self.database.insert_games(games)
+        saved = self.database.insert_games(games, updated_at=thailand_now().isoformat())
         return SyncResult(fetched=len(raw_games), saved=saved)
 
     def get_games(self) -> list[dict[str, Any]]:
@@ -75,15 +86,19 @@ class GameService:
         """Retrieve the current Home-page ranking from SQLite."""
         return self.database.get_live_top_games()
 
+    def get_popular_games(self) -> list[dict[str, Any]]:
+        """Retrieve locally stored popular RAWG games for the Home page."""
+        return self.database.get_popular_games()
+
     def search_games(self, search_term: str) -> list[dict[str, Any]]:
         """Find games from SQLite; a blank search deliberately returns no results."""
         return self.database.search_games(search_term)
 
-    def search_and_import_games(self, search_term: str, page_size: int = 20) -> list[dict[str, Any]]:
+    def search_and_import_games(self, search_term: str, page_size: int = PAGE_SIZE) -> list[dict[str, Any]]:
         """Find titles in RAWG and make their normalized data available locally."""
         raw_games = self.api_client.search_games(search_term, page_size)
         games = process_games(raw_games)
-        self.database.insert_games(games)
+        self.database.insert_games(games, updated_at=thailand_now().isoformat())
         return self.database.search_games(search_term)
 
     def refresh_current_players(
@@ -93,12 +108,13 @@ class GameService:
         game_ids: set[int] | None = None,
     ) -> PlayerRefreshResult:
         """Refresh Steam counts, using a short shared cache to protect both APIs."""
-        now = datetime.now(UTC)
+        now = thailand_now()
         last_refresh = self.database.get_metadata("players_last_refresh")
         if game_ids is None and not force and _is_fresh(last_refresh, now, minimum_interval):
             return PlayerRefreshResult(0, 0, 0, skipped=True)
 
         updated = unavailable = failed = 0
+        readings: list[tuple[int, int | None]] = []
         for game in self.database.get_games():
             if game_ids is not None and game["game_id"] not in game_ids:
                 continue
@@ -114,9 +130,7 @@ class GameService:
                     unavailable += 1
                     continue
                 current_players = self.steam_client.get_current_players(steam_app_id)
-                self.database.update_current_players(
-                    game["game_id"], current_players, now.isoformat()
-                )
+                readings.append((game["game_id"], current_players))
                 updated += 1
             except SteamConnectionError:
                 # A network failure will affect every following request too.
@@ -125,15 +139,35 @@ class GameService:
             except SteamApiError:
                 failed += 1
 
+        self.database.update_current_players_bulk(readings, now.isoformat())
+
         if game_ids is None:
             self.database.set_metadata("players_last_refresh", now.isoformat())
         return PlayerRefreshResult(updated, unavailable, failed)
 
+    def refresh_catalog(
+        self, minimum_interval: timedelta = timedelta(minutes=15), force: bool = False
+    ) -> CatalogRefreshResult:
+        """Fetch up to 100 RAWG discoveries, save them, then let the UI read SQLite."""
+        now = thailand_now()
+        last_refresh = self.database.get_metadata("catalog_last_refresh")
+        if not force and _is_fresh(last_refresh, now, minimum_interval):
+            return CatalogRefreshResult(0, skipped=True)
+
+        # ``-added`` is RAWG's popularity signal (how often a game is added
+        # to player collections), making Home a discovery feed rather than a
+        # duplicate of Steam's live-player chart.
+        raw_games = self.api_client.fetch_games(PAGE_SIZE, ordering="-added")
+        games = process_games(raw_games)
+        saved = self.database.insert_games(games, updated_at=now.isoformat())
+        self.database.set_metadata("catalog_last_refresh", now.isoformat())
+        return CatalogRefreshResult(saved)
+
     def refresh_live_top_games(
         self, minimum_interval: timedelta = timedelta(minutes=15), force: bool = False
     ) -> LiveTopRefreshResult:
-        """Refresh Steam's Top 50 once per shared interval and persist the result."""
-        now = datetime.now(UTC)
+        """Refresh Steam's Top 100 once per shared interval and persist the result."""
+        now = thailand_now()
         last_refresh = self.database.get_metadata("live_top_last_refresh")
         saved_games = self.database.get_live_top_games(limit=LIVE_TOP_GAMES_LIMIT)
         if (
@@ -143,7 +177,7 @@ class GameService:
         ):
             return LiveTopRefreshResult(len(saved_games), skipped=True)
 
-        games = self.steam_client.get_most_played_games(limit=LIVE_TOP_GAMES_LIMIT)
+        games = self.steam_client.get_most_played_games(limit=PAGE_SIZE)
         saved = self.database.save_live_top_games(games, now.isoformat())
         self.database.set_metadata("live_top_last_refresh", now.isoformat())
         return LiveTopRefreshResult(saved)

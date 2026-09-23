@@ -108,7 +108,7 @@ class SteamApiClient:
                     "name": detail["name"],
                     "rating": None,
                     "released": None,
-                    "genres": [],
+                    "genres": detail["genres"],
                     "platforms": ["PC (Steam)"],
                     "metacritic": None,
                     "ratings_count": None,
@@ -123,7 +123,7 @@ class SteamApiClient:
             raise SteamApiError("Steam ไม่ส่งข้อมูลผู้เล่นสำหรับอันดับเกม")
         return games[:limit]
 
-    def _get_app_detail(self, app_id: int) -> dict[str, str | None] | None:
+    def _get_app_detail(self, app_id: int) -> dict[str, Any] | None:
         payload = self._get_json(
             STEAM_APP_DETAILS_URL, {"appids": app_id, "l": "english", "cc": "us"}
         )
@@ -137,7 +137,18 @@ class SteamApiClient:
         if not isinstance(name, str) or not name.strip():
             return None
         image = data.get("header_image")
-        return {"name": name.strip(), "image": image if isinstance(image, str) else None}
+        genres = data.get("genres")
+        return {
+            "name": name.strip(),
+            "image": image if isinstance(image, str) else None,
+            "genres": [
+                genre["description"].strip()
+                for genre in genres
+                if isinstance(genre, dict) and isinstance(genre.get("description"), str)
+            ]
+            if isinstance(genres, list)
+            else [],
+        }
 
     def _fetch_many(self, app_ids: list[int], fetcher: Any) -> dict[int, Any]:
         """Fetch independent Steam records concurrently so Home does not stall."""

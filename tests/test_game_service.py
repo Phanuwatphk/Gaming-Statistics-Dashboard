@@ -80,13 +80,14 @@ def test_service_refreshes_and_persists_available_steam_player_counts(tmp_path):
     assert result.updated == 1
     assert result.unavailable == 1
     assert games["Portal 2"]["current_players"] == 1234
+    assert games["Portal 2"]["players_updated_at"].endswith("+07:00")
     assert games["Not on Steam"]["steam_lookup_status"] == "unavailable"
 
 
 class FakeRawgSearchClient:
     def search_games(self, search_term: str, page_size: int):
         assert search_term == "Minecraft"
-        assert page_size == 20
+        assert page_size == 100
         return [{"id": 70, "name": "Minecraft", "genres": [], "platforms": []}]
 
 
@@ -100,7 +101,7 @@ def test_service_imports_rawg_search_results_into_the_local_database(tmp_path):
 
 class FakeSteamTopClient:
     def get_most_played_games(self, limit: int):
-        assert limit == 50
+        assert limit == 100
         return [
             {
                 "game_id": -730,
@@ -129,3 +130,28 @@ def test_service_refreshes_the_live_top_games_for_home(tmp_path):
 
     assert result.saved == 1
     assert [game["name"] for game in service.get_live_top_games()] == ["Counter-Strike 2"]
+
+
+class FakeDiscoveryClient:
+    def fetch_games(self, page_size: int, ordering: str | None = None):
+        assert page_size == 100
+        assert ordering == "-added"
+        return [
+            {
+                "id": 10,
+                "name": "Popular game",
+                "genres": [{"name": "Adventure"}],
+                "platforms": [],
+                "ratings_count": 100,
+            }
+        ]
+
+
+def test_service_saves_rawg_discoveries_before_home_reads_them(tmp_path):
+    service = GameService(FakeDiscoveryClient(), GameDatabase(tmp_path / "games.db"))
+
+    result = service.refresh_catalog()
+
+    assert result.saved == 1
+    assert service.get_popular_games()[0]["genres"] == ["Adventure"]
+    assert service.get_popular_games()[0]["catalog_updated_at"].endswith("+07:00")
