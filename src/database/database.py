@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS games (
     steam_lookup_status TEXT NOT NULL DEFAULT 'pending',
     current_players INTEGER,
     players_updated_at TEXT,
+    catalog_updated_at TEXT,
     is_live_top INTEGER NOT NULL DEFAULT 0,
     live_rank INTEGER
 )
@@ -40,6 +41,7 @@ GAME_COLUMN_MIGRATIONS = {
     "steam_lookup_status": "TEXT NOT NULL DEFAULT 'pending'",
     "current_players": "INTEGER",
     "players_updated_at": "TEXT",
+    "catalog_updated_at": "TEXT",
     "is_live_top": "INTEGER NOT NULL DEFAULT 0",
     "live_rank": "INTEGER",
 }
@@ -54,6 +56,7 @@ class GameDatabase:
 
     def __init__(self, database_path: str | Path) -> None:
         self.database_path = Path(database_path)
+        self._schema_initialized = False
 
     def connect(self) -> sqlite3.Connection:
         """Open a configured SQLite connection with dictionary-like rows."""
@@ -73,7 +76,7 @@ class GameDatabase:
         except sqlite3.Error as error:
             raise DatabaseError("ไม่สามารถสร้างตาราง games ใน SQLite ได้") from error
 
-    def insert_games(self, games: Iterable[dict[str, Any]]) -> int:
+    def insert_games(self, games: Iterable[dict[str, Any]], updated_at: str | None = None) -> int:
         """Insert or update game records, using game_id to prevent duplicates."""
         records = list(games)
         if not records:
@@ -82,10 +85,10 @@ class GameDatabase:
         statement = """
         INSERT INTO games (
             game_id, name, rating, released, genres, platforms,
-            metacritic, ratings_count, image
+            metacritic, ratings_count, image, catalog_updated_at
         ) VALUES (
             :game_id, :name, :rating, :released, :genres, :platforms,
-            :metacritic, :ratings_count, :image
+            :metacritic, :ratings_count, :image, :catalog_updated_at
         )
         ON CONFLICT(game_id) DO UPDATE SET
             name = excluded.name,
@@ -95,9 +98,10 @@ class GameDatabase:
             platforms = excluded.platforms,
             metacritic = excluded.metacritic,
             ratings_count = excluded.ratings_count,
-            image = excluded.image
+            image = excluded.image,
+            catalog_updated_at = excluded.catalog_updated_at
         """
-        rows = [self._database_row(game) for game in records]
+        rows = [self._database_row({**game, "catalog_updated_at": updated_at}) for game in records]
         try:
             with self.connect() as connection:
                 self._prepare_schema(connection)
@@ -112,7 +116,10 @@ class GameDatabase:
             with self.connect() as connection:
                 self._prepare_schema(connection)
                 rows = connection.execute(
-                    "SELECT * FROM games ORDER BY name COLLATE NOCASE"
+                    """
+                    SELECT * FROM games
+                    ORDER BY catalog_updated_at IS NULL, catalog_updated_at DESC, name COLLATE NOCASE
+                    """
                 ).fetchall()
         except sqlite3.Error as error:
             raise DatabaseError("ไม่สามารถอ่านข้อมูลเกมจาก SQLite ได้") from error
@@ -190,6 +197,28 @@ class GameDatabase:
         except sqlite3.Error as error:
             raise DatabaseError("ไม่สามารถบันทึกจำนวนผู้เล่น Steam ได้") from error
 
+    def update_current_players_bulk(
+        self, readings: Iterable[tuple[int, int | None]], updated_at: str
+    ) -> int:
+        """Persist multiple Steam readings in one SQLite transaction."""
+        rows = [(current_players, updated_at, game_id) for game_id, current_players in readings]
+        if not rows:
+            return 0
+        try:
+            with self.connect() as connection:
+                self._prepare_schema(connection)
+                connection.executemany(
+                    """
+                    UPDATE games
+                    SET current_players = ?, players_updated_at = ?
+                    WHERE game_id = ?
+                    """,
+                    rows,
+                )
+        except sqlite3.Error as error:
+            raise DatabaseError("ไม่สามารถบันทึกจำนวนผู้เล่น Steam ได้") from error
+        return len(rows)
+
     def save_live_top_games(self, games: Iterable[dict[str, Any]], updated_at: str) -> int:
         """Replace the displayed Steam Top list with one consistent live snapshot."""
         records = list(games)
@@ -199,11 +228,11 @@ class GameDatabase:
         INSERT INTO games (
             game_id, name, rating, released, genres, platforms, metacritic,
             ratings_count, image, steam_app_id, steam_lookup_status,
-            current_players, players_updated_at, is_live_top, live_rank
+            current_players, players_updated_at, catalog_updated_at, is_live_top, live_rank
         ) VALUES (
             :game_id, :name, :rating, :released, :genres, :platforms, :metacritic,
             :ratings_count, :image, :steam_app_id, :steam_lookup_status,
-            :current_players, :players_updated_at, 1, :live_rank
+            :current_players, :players_updated_at, :catalog_updated_at, 1, :live_rank
         )
         ON CONFLICT(game_id) DO UPDATE SET
             name = excluded.name,
@@ -213,11 +242,15 @@ class GameDatabase:
             steam_lookup_status = excluded.steam_lookup_status,
             current_players = excluded.current_players,
             players_updated_at = excluded.players_updated_at,
+            genres = CASE WHEN excluded.genres != '[]' THEN excluded.genres ELSE games.genres END,
+            catalog_updated_at = excluded.catalog_updated_at,
             is_live_top = 1,
             live_rank = excluded.live_rank
         """
         rows = [
-            self._database_row({**game, "players_updated_at": updated_at})
+            self._database_row(
+                {**game, "players_updated_at": updated_at, "catalog_updated_at": updated_at}
+            )
             for game in records
         ]
         try:
@@ -229,7 +262,7 @@ class GameDatabase:
             raise DatabaseError("ไม่สามารถบันทึกอันดับผู้เล่น Steam ได้") from error
         return len(rows)
 
-    def get_live_top_games(self, limit: int = 50) -> list[dict[str, Any]]:
+    def get_live_top_games(self, limit: int = 100) -> list[dict[str, Any]]:
         """Read the latest Steam-ranked games in their API-provided order."""
         try:
             with self.connect() as connection:
@@ -238,13 +271,30 @@ class GameDatabase:
                     """
                     SELECT * FROM games
                     WHERE is_live_top = 1
-                    ORDER BY live_rank ASC, current_players DESC
+                    ORDER BY current_players DESC, live_rank ASC
                     LIMIT ?
                     """,
                     (limit,),
                 ).fetchall()
         except sqlite3.Error as error:
             raise DatabaseError("ไม่สามารถอ่านอันดับผู้เล่น Steam ได้") from error
+        return [self._game_from_row(row) for row in rows]
+
+    def get_popular_games(self) -> list[dict[str, Any]]:
+        """Read RAWG discoveries stored locally, favouring broadly popular titles."""
+        try:
+            with self.connect() as connection:
+                self._prepare_schema(connection)
+                rows = connection.execute(
+                    """
+                    SELECT * FROM games
+                    WHERE game_id > 0
+                    ORDER BY ratings_count IS NULL, ratings_count DESC,
+                             released IS NULL, released DESC, catalog_updated_at DESC
+                    """
+                ).fetchall()
+        except sqlite3.Error as error:
+            raise DatabaseError("ไม่สามารถอ่านเกมยอดนิยมจาก SQLite ได้") from error
         return [self._game_from_row(row) for row in rows]
 
     def get_metadata(self, key: str) -> str | None:
@@ -274,8 +324,10 @@ class GameDatabase:
         except sqlite3.Error as error:
             raise DatabaseError("ไม่สามารถบันทึกข้อมูลสถานะ Dashboard ได้") from error
 
-    @staticmethod
-    def _prepare_schema(connection: sqlite3.Connection) -> None:
+    def _prepare_schema(self, connection: sqlite3.Connection) -> None:
+        """Create or migrate the schema once for this repository instance."""
+        if self._schema_initialized:
+            return
         connection.execute(CREATE_GAMES_TABLE)
         connection.execute(CREATE_METADATA_TABLE)
         existing_columns = {
@@ -284,6 +336,7 @@ class GameDatabase:
         for column, definition in GAME_COLUMN_MIGRATIONS.items():
             if column not in existing_columns:
                 connection.execute(f"ALTER TABLE games ADD COLUMN {column} {definition}")
+        self._schema_initialized = True
 
     @staticmethod
     def _database_row(game: dict[str, Any]) -> dict[str, Any]:

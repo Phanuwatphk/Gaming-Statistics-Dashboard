@@ -38,60 +38,80 @@ class RawgApiClient:
         self.session = session or requests.Session()
         self.timeout = timeout
 
-    def fetch_games(self, page_size: int = 20) -> list[dict[str, Any]]:
+    def fetch_games(
+        self, page_size: int = 20, ordering: str | None = None
+    ) -> list[dict[str, Any]]:
         """Return RAWG's default game listing or raise a user-friendly API error."""
-        return self._fetch_games(page_size, search_term=None, require_results=True)
+        return self._fetch_games(
+            page_size, search_term=None, require_results=True, ordering=ordering
+        )
 
     def search_games(self, search_term: str, page_size: int = 20) -> list[dict[str, Any]]:
         """Search RAWG by title; an unmatched title is a valid empty result."""
         term = search_term.strip()
         if not term:
             return []
-        return self._fetch_games(page_size, search_term=term, require_results=False)
+        return self._fetch_games(page_size, search_term=term, require_results=False, ordering=None)
 
     def _fetch_games(
-        self, page_size: int, search_term: str | None, require_results: bool
+        self,
+        page_size: int,
+        search_term: str | None,
+        require_results: bool,
+        ordering: str | None,
     ) -> list[dict[str, Any]]:
         if not self.api_key.strip():
             raise RawgConfigurationError(
                 "ไม่พบ RAWG API key: กรุณาตั้งค่า RAWG_API_KEY ในไฟล์ .env หรือ environment"
             )
-        if not 1 <= page_size <= 40:
-            raise ValueError("จำนวนเกมที่ดึงต้องอยู่ระหว่าง 1 ถึง 40")
+        if not 1 <= page_size <= 100:
+            raise ValueError("จำนวนเกมที่ดึงต้องอยู่ระหว่าง 1 ถึง 100")
 
-        try:
-            params = {"key": self.api_key.strip(), "page_size": page_size}
-            if search_term:
-                params["search"] = search_term
-            response = self.session.get(
-                RAWG_GAMES_URL,
-                params=params,
-                timeout=self.timeout,
-            )
-            response.raise_for_status()
-        except requests.Timeout as error:
-            raise RawgApiError("การเชื่อมต่อ RAWG API หมดเวลา กรุณาลองใหม่") from error
-        except requests.ConnectionError as error:
-            raise RawgApiError("ไม่สามารถเชื่อมต่อ RAWG API ได้ กรุณาตรวจสอบอินเทอร์เน็ต") from error
-        except requests.HTTPError as error:
-            status_code = error.response.status_code if error.response is not None else None
-            if status_code in {401, 403}:
-                message = "RAWG API key ไม่ถูกต้องหรือไม่มีสิทธิ์ใช้งาน"
-            else:
-                message = f"RAWG API ตอบกลับด้วย HTTP {status_code or 'error'}"
-            raise RawgApiError(message) from error
-        except requests.RequestException as error:
-            raise RawgApiError("เกิดข้อผิดพลาดขณะเรียก RAWG API") from error
+        games: list[dict[str, Any]] = []
+        # RAWG permits at most 40 records per HTTP request. Keep that API
+        # detail here so callers can request the dashboard's 100-record page.
+        for page in range(1, (page_size - 1) // 40 + 2):
+            requested_size = min(40, page_size - len(games))
+            try:
+                params = {"key": self.api_key.strip(), "page_size": requested_size}
+                if search_term:
+                    params["search"] = search_term
+                if ordering:
+                    params["ordering"] = ordering
+                if page > 1:
+                    params["page"] = page
+                response = self.session.get(
+                    RAWG_GAMES_URL,
+                    params=params,
+                    timeout=self.timeout,
+                )
+                response.raise_for_status()
+            except requests.Timeout as error:
+                raise RawgApiError("การเชื่อมต่อ RAWG API หมดเวลา กรุณาลองใหม่") from error
+            except requests.ConnectionError as error:
+                raise RawgApiError("ไม่สามารถเชื่อมต่อ RAWG API ได้ กรุณาตรวจสอบอินเทอร์เน็ต") from error
+            except requests.HTTPError as error:
+                status_code = error.response.status_code if error.response is not None else None
+                if status_code in {401, 403}:
+                    message = "RAWG API key ไม่ถูกต้องหรือไม่มีสิทธิ์ใช้งาน"
+                else:
+                    message = f"RAWG API ตอบกลับด้วย HTTP {status_code or 'error'}"
+                raise RawgApiError(message) from error
+            except requests.RequestException as error:
+                raise RawgApiError("เกิดข้อผิดพลาดขณะเรียก RAWG API") from error
 
-        try:
-            payload = response.json()
-        except ValueError as error:
-            raise RawgApiError("RAWG API ส่งข้อมูลที่ไม่ใช่ JSON") from error
+            try:
+                payload = response.json()
+            except ValueError as error:
+                raise RawgApiError("RAWG API ส่งข้อมูลที่ไม่ใช่ JSON") from error
 
-        if not isinstance(payload, dict) or not isinstance(payload.get("results"), list):
-            raise RawgApiError("RAWG API ส่งรูปแบบข้อมูลที่ไม่คาดไว้")
+            if not isinstance(payload, dict) or not isinstance(payload.get("results"), list):
+                raise RawgApiError("RAWG API ส่งรูปแบบข้อมูลที่ไม่คาดไว้")
+            page_games = payload["results"]
+            games.extend(page_games)
+            if len(page_games) < requested_size:
+                break
 
-        games = payload["results"]
         if not games and require_results:
             raise RawgApiError("RAWG API ไม่พบข้อมูลเกมสำหรับคำขอนี้")
-        return games
+        return games[:page_size]

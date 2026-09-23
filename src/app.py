@@ -9,13 +9,13 @@ from datetime import timedelta
 import streamlit as st
 
 if __package__:
-    from .api.rawg_api import RawgApiClient
+    from .api.rawg_api import RawgApiClient, RawgApiError
     from .api.steam_api import SteamApiError
     from .components.dashboard import render_dashboard
     from .database.database import DatabaseError, GameDatabase
     from .services.game_service import GameService
 else:  # `streamlit run src/app.py` executes this module as a script.
-    from api.rawg_api import RawgApiClient
+    from api.rawg_api import RawgApiClient, RawgApiError
     from api.steam_api import SteamApiError
     from components.dashboard import render_dashboard
     from database.database import DatabaseError, GameDatabase
@@ -41,15 +41,19 @@ def _live_refresh_interval() -> timedelta:
     return timedelta(minutes=minutes)
 
 
-def _refresh_home_for_new_session(game_service: GameService) -> None:
-    """Check the shared Top 50 once per visitor session before rendering Home."""
+def _refresh_dashboard_data(game_service: GameService, refresh_interval: timedelta) -> None:
+    """Refresh shared RAWG and Steam snapshots once per visitor session."""
     if st.session_state.get("home_refresh_checked"):
         return
     st.session_state.home_refresh_checked = True
     try:
-        with st.spinner("Updating the most-played Steam games..."):
-            result = game_service.refresh_live_top_games(_live_refresh_interval())
-        st.session_state.home_refresh_result = result
+        with st.spinner("Updating game discoveries and Steam live players..."):
+            st.session_state.catalog_refresh_result = game_service.refresh_catalog(refresh_interval)
+    except RawgApiError as error:
+        st.session_state.catalog_refresh_error = str(error)
+    try:
+        with st.spinner("Updating game discoveries and Steam live players..."):
+            st.session_state.home_refresh_result = game_service.refresh_live_top_games(refresh_interval)
     except SteamApiError as error:
         # Preserve the last successful SQLite snapshot if Steam is temporarily unavailable.
         st.session_state.home_refresh_error = str(error)
@@ -60,9 +64,11 @@ def main() -> None:
     st.set_page_config(page_title="Gaming Statistics", layout="wide")
     try:
         game_service = build_game_service()
-        _refresh_home_for_new_session(game_service)
+        _refresh_dashboard_data(game_service, _live_refresh_interval())
         if error := st.session_state.get("home_refresh_error"):
             st.warning(f"Showing the last saved Steam ranking: {error}")
+        if error := st.session_state.get("catalog_refresh_error"):
+            st.warning(f"Showing the last saved game catalogue: {error}")
         render_dashboard(game_service)
     except DatabaseError as error:
         st.error(str(error))

@@ -38,4 +38,4 @@ def test_genres_page_allows_a_game_in_multiple_genres(tmp_path, monkeypatch):
 
 
 def test_display_timestamp_omits_fractional_seconds():
-    assert _display_timestamp("2026-09-22T18:17:06.590359+00:00") == "2026-09-22 18:17:06 UTC"
+    assert _display_timestamp("2026-09-22T18:17:06.590359+00:00") == "2026-09-23 01:17:06 UTC+7"

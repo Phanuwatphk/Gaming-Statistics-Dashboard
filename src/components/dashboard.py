@@ -12,10 +12,14 @@ if __package__ and __package__.startswith("src."):
     from src.api.rawg_api import RawgApiError
     from src.database.database import DatabaseError
     from src.services.game_service import GameService
+    from src.utils.time_utils import format_thailand_timestamp
+    from src.components.styles import apply_dashboard_styles
 else:  # Supports imports when Streamlit runs src/app.py as a script.
     from api.rawg_api import RawgApiError
     from database.database import DatabaseError
     from services.game_service import GameService
+    from utils.time_utils import format_thailand_timestamp
+    from components.styles import apply_dashboard_styles
 
 
 NAVIGATION = (
@@ -26,11 +30,12 @@ NAVIGATION = (
     ("top_rated", "Top Rated"),
     ("players", "Live Players"),
 )
+GAMES_PER_PAGE = 100
 
 
 def render_dashboard(game_service: GameService) -> None:
     """Render dashboard pages using data supplied by GameService."""
-    _apply_styles()
+    apply_dashboard_styles()
     _initialize_navigation_state()
     _render_sidebar()
 
@@ -56,70 +61,6 @@ def _initialize_navigation_state() -> None:
     st.session_state.setdefault("selected_game_id", None)
 
 
-def _apply_styles() -> None:
-    """Apply a clear, consistent visual system across the dashboard."""
-    st.markdown(
-        """
-        <style>
-        .stApp { --primary-color: #2563eb; --text-color: #132542; background: #f6f8fc; color: #132542; }
-        [data-testid="stHeader"] { background: transparent; }
-        [data-testid="stMain"] { color: #132542; }
-        [data-testid="stMain"] [data-testid="stMetricLabel"] *,
-        [data-testid="stMain"] [data-testid="stMetricValue"],
-        [data-testid="stMain"] [data-testid="stMetricDelta"],
-        [data-testid="stMain"] label,
-        [data-testid="stMain"] [data-testid="stSelectbox"] *,
-        [data-testid="stMain"] [data-testid="stTextInput"] * { color: #132542 !important; }
-        [data-testid="stMain"] input, [data-testid="stMain"] [data-baseweb="select"] > div {
-            background: #ffffff !important; color: #132542 !important; border-color: #c9d8ec !important;
-        }
-        [data-testid="stMain"] input::placeholder { color: #71819a !important; opacity: 1; }
-        [data-testid="stMain"] .stButton > button { background: #2563eb; border: 1px solid #2563eb; color: #ffffff !important; }
-        [data-testid="stMain"] .stButton > button:hover { background: #1d4ed8; border-color: #1d4ed8; color: #ffffff !important; }
-        [data-testid="stMain"] .stButton > button * { color: #ffffff !important; }
-        [data-testid="stSidebar"] { background: linear-gradient(180deg, #102947 0%, #071526 100%); }
-        [data-testid="stSidebarUserContent"] { padding-top: .75rem; }
-        [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] h3,
-        [data-testid="stSidebar"] p { color: #eef5ff !important; }
-        [data-testid="stSidebar"] [data-testid="stCaptionContainer"] * { color: #a8bed7 !important; }
-        [data-testid="stSidebar"] .stButton > button {
-            justify-content: flex-start; min-height: 2.75rem; padding: 0 .85rem; border: 1px solid transparent;
-            border-radius: .55rem; background: transparent !important; color: #eef5ff !important;
-            font-size: .94rem; transition: background .15s ease, border-color .15s ease;
-        }
-        [data-testid="stSidebar"] .stButton > button:hover,
-        [data-testid="stSidebar"] .stButton > button:focus-visible {
-            background: rgba(255, 255, 255, .16) !important; border-color: rgba(255, 255, 255, .18) !important;
-            color: #ffffff !important;
-        }
-        [data-testid="stSidebar"] .stButton > button[kind="primary"] { background: #2563eb; color: #ffffff !important; }
-        [data-testid="stSidebar"] .stButton > button[kind="primary"]:hover { background: #1d4ed8 !important; }
-        [data-testid="stSidebar"] .stButton > button[kind="secondary"] { color: #eef5ff !important; }
-        [data-testid="stSidebar"] .stButton > button * { color: inherit !important; }
-        .block-container { max-width: 1400px; padding-top: 2.5rem; padding-bottom: 3rem; }
-        .page-kicker { color: #2563eb; font-size: .75rem; font-weight: 750; letter-spacing: .1em; text-transform: uppercase; }
-        .page-title { margin: .18rem 0 .35rem; color: #102542; font-size: 2.15rem; font-weight: 750; letter-spacing: -.03em; }
-        .page-subtitle { color: #63738c; margin-bottom: 1.75rem; font-size: 1rem; }
-        .sidebar-brand { color: #f6f9ff; font-size: 1.28rem; font-weight: 750; letter-spacing: -.02em; text-align: center; }
-        .sidebar-label { color: #9db3cd; font-size: .82rem; margin-top: .25rem; text-align: center; }
-        .hero-stat { background: linear-gradient(130deg, #102947, #1d4f8f); border-radius: 1rem; padding: 1.5rem 1.65rem; color: #f8fbff; margin: 0 0 1.75rem; box-shadow: 0 12px 28px rgba(16, 41, 71, .16); }
-        .hero-stat-label { color: #bcd4f4; font-size: .82rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; }
-        .hero-stat-value { color: #ffffff; font-size: 2.35rem; font-weight: 760; letter-spacing: -.04em; line-height: 1.2; margin-top: .35rem; }
-        .hero-stat-note { color: #d4e4f8; font-size: .88rem; margin-top: .35rem; }
-        .game-card { background: #ffffff; border: 1px solid #dce7f5; border-radius: .8rem; padding: .9rem; min-height: 128px; box-shadow: 0 3px 12px rgba(28, 62, 106, .06); }
-        .game-name { color: #142644; font-weight: 700; font-size: 1rem; margin-top: .25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .game-meta { color: #60718a; font-size: .84rem; margin-top: .35rem; }
-        .tag { display: inline-block; background: #edf4ff; color: #3264aa; border-radius: 999px; font-size: .72rem; padding: .18rem .48rem; margin: .45rem .18rem 0 0; }
-        .empty-state { background: #ffffff; border: 1px dashed #b7c9e2; border-radius: 14px; padding: 3.5rem 1rem; text-align: center; color: #5c6f8a; }
-        .detail-panel { background: #ffffff; border: 1px solid #dce7f5; border-radius: 12px; padding: 1.2rem; }
-        .detail-label { color: #71819a; font-size: .78rem; margin-bottom: .15rem; }
-        .detail-value { color: #142644; font-weight: 650; }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-
-
 def _render_sidebar() -> None:
     with st.sidebar:
         st.markdown('<div class="sidebar-brand">Gaming Statistics</div>', unsafe_allow_html=True)
@@ -137,17 +78,18 @@ def _render_sidebar() -> None:
 
 
 def _render_home(game_service: GameService) -> None:
-    games = game_service.get_live_top_games()
-    _page_heading("Most Played on Steam", "A live snapshot of the 50 games with the most active players.")
+    games = game_service.get_popular_games()
+    live_games = game_service.get_live_top_games()
+    _page_heading("Popular Games", "Popular and widely played games saved from the latest RAWG discovery update.")
 
     if not games:
-        _render_empty_state("Live rankings are unavailable", "Refresh the page to request the latest Steam snapshot.")
+        _render_empty_state("Popular games are unavailable", "Refresh the page to request the latest game discovery snapshot.")
         return
-    current_players = [game["current_players"] for game in games if game["current_players"] is not None]
-    latest_update = max(game["players_updated_at"] or "" for game in games)
+    current_players = [game["current_players"] for game in live_games if game["current_players"] is not None]
+    latest_update = max((game["players_updated_at"] or "" for game in live_games), default="")
     _render_top_player_stat(sum(current_players), latest_update)
-    st.markdown("### Top 50 games by current players")
-    _render_game_grid(games, columns_per_row=4, key_prefix="home-top")
+    st.markdown("### Popular games")
+    _render_paginated_game_grid(games, page_key="home", columns_per_row=4, key_prefix="home")
 
 
 def _render_games_page(game_service: GameService) -> None:
@@ -162,12 +104,8 @@ def _render_games_page(game_service: GameService) -> None:
         _render_empty_state("No matching games", "Try broadening the genre, platform, or rating filters.")
         return
 
-    sort_option = st.selectbox("Sort by", ("Highest rating", "Name: A–Z"))
-    if sort_option == "Highest rating":
-        games = _sort_by_rating(games)
-    else:
-        games = sorted(games, key=lambda game: game["name"].casefold())
-    _render_game_grid(games, key_prefix="games")
+    st.caption("Sorted by the most recent database update.")
+    _render_paginated_game_grid(games, page_key="games", key_prefix="games")
 
 
 def _render_collection_filters(games: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -230,7 +168,9 @@ def _render_search_page(game_service: GameService) -> None:
     if not games:
         return
     st.caption(f'Results for “{search_term.strip()}” · {len(games)} game(s)')
-    _render_game_grid(games, columns_per_row=1, key_prefix="search")
+    _render_paginated_game_grid(
+        games, page_key="search-results", columns_per_row=1, key_prefix="search"
+    )
 
 
 def _render_genres_page(game_service: GameService) -> None:
@@ -245,7 +185,12 @@ def _render_genres_page(game_service: GameService) -> None:
         return
     for genre in sorted(grouped_games):
         with st.expander(f"{genre} · {len(grouped_games[genre])} game(s)"):
-            _render_game_grid(grouped_games[genre], columns_per_row=3, key_prefix=f"genre-{genre}")
+            _render_paginated_game_grid(
+                grouped_games[genre],
+                page_key=f"genre-{genre}",
+                columns_per_row=3,
+                key_prefix=f"genre-{genre}",
+            )
 
 
 def _render_top_rated_page(game_service: GameService) -> None:
@@ -254,11 +199,13 @@ def _render_top_rated_page(game_service: GameService) -> None:
     if not games:
         _render_empty_state("Your library is empty", "Use Search to add games and view their ratings.")
         return
-    _render_game_grid(games, key_prefix="top-rated")
+    _render_paginated_game_grid(
+        games, page_key="top-rated", key_prefix="top-rated", show_rank=True
+    )
 
 
 def _render_players_page(game_service: GameService) -> None:
-    _page_heading("Live Players", "Steam's latest Top 50 games by active player count.")
+    _page_heading("Live Players", "Steam's latest Top 100 games by current active player count.")
     games = game_service.get_live_top_games()
     if not games:
         _render_empty_state(
@@ -269,7 +216,7 @@ def _render_players_page(game_service: GameService) -> None:
     latest_update = max(game["players_updated_at"] or "" for game in games)
     if latest_update:
         st.caption(f"Last updated: {_display_timestamp(latest_update)}")
-    _render_game_grid(games, key_prefix="players")
+    _render_paginated_game_grid(games, page_key="players", key_prefix="players", show_rank=True)
 
 
 def _render_detail_page(game_service: GameService) -> None:
@@ -314,23 +261,64 @@ def _render_detail_page(game_service: GameService) -> None:
 
 
 def _render_game_grid(
-    games: list[dict[str, Any]], columns_per_row: int = 3, key_prefix: str = "games"
+    games: list[dict[str, Any]],
+    columns_per_row: int = 3,
+    key_prefix: str = "games",
+    show_rank: bool = False,
+    rank_start: int = 1,
 ) -> None:
     for start in range(0, len(games), columns_per_row):
         columns = st.columns(columns_per_row)
         for offset, (column, game) in enumerate(zip(columns, games[start : start + columns_per_row])):
             with column:
-                _render_game_card(game, f"{key_prefix}-{start + offset}")
+                rank = rank_start + start + offset if show_rank else None
+                _render_game_card(game, f"{key_prefix}-{start + offset}", rank)
+
+
+def _render_paginated_game_grid(
+    games: list[dict[str, Any]],
+    page_key: str,
+    columns_per_row: int = 3,
+    key_prefix: str = "games",
+    show_rank: bool = False,
+) -> None:
+    """Render exactly up to 100 games and page through the remaining local records."""
+    total_pages = max(1, (len(games) + GAMES_PER_PAGE - 1) // GAMES_PER_PAGE)
+    state_key = f"pagination-{page_key}"
+    current_page = min(st.session_state.get(state_key, 1), total_pages)
+    st.session_state[state_key] = current_page
+    start = (current_page - 1) * GAMES_PER_PAGE
+    _render_game_grid(
+        games[start : start + GAMES_PER_PAGE],
+        columns_per_row=columns_per_row,
+        key_prefix=f"{key_prefix}-page-{current_page}",
+        show_rank=show_rank,
+        rank_start=start + 1,
+    )
+    if total_pages == 1:
+        return
+
+    previous_column, page_column, next_column = st.columns((1, 2, 1))
+    with previous_column:
+        if st.button("← Previous", key=f"{state_key}-previous", disabled=current_page == 1):
+            st.session_state[state_key] = current_page - 1
+            st.rerun()
+    with page_column:
+        st.markdown(f"<p style='text-align:center'>Page {current_page} of {total_pages}</p>", unsafe_allow_html=True)
+    with next_column:
+        if st.button("Next →", key=f"{state_key}-next", disabled=current_page == total_pages):
+            st.session_state[state_key] = current_page + 1
+            st.rerun()
 
 
 def _render_top_player_stat(total_players: int, latest_update: str) -> None:
-    """Render the sole Home KPI: active players across Steam's Top 50."""
+    """Render the sole Home KPI: active players across Steam's Top 100."""
     updated_note = (
         f"Last updated {_display_timestamp(latest_update)}" if latest_update else "Update time unavailable"
     )
     st.markdown(
         '<div class="hero-stat">'
-        '<div class="hero-stat-label">Players in the Steam Top 50</div>'
+        '<div class="hero-stat-label">Players in the Steam Top 100</div>'
         f'<div class="hero-stat-value">{total_players:,}</div>'
         f'<div class="hero-stat-note">{escape(updated_note)}</div>'
         '</div>',
@@ -338,15 +326,15 @@ def _render_top_player_stat(total_players: int, latest_update: str) -> None:
     )
 
 
-def _render_game_card(game: dict[str, Any], key_prefix: str) -> None:
+def _render_game_card(game: dict[str, Any], key_prefix: str, rank: int | None = None) -> None:
     if game["image"]:
         st.image(game["image"], width="stretch")
     else:
         st.markdown('<div class="game-card">No cover image available</div>', unsafe_allow_html=True)
 
-    rank = f"#{game['live_rank']} · " if game.get("live_rank") else ""
+    rank_text = f"#{rank} · " if rank is not None else ""
     rating = f"Rating {game['rating']:.1f}" if game["rating"] is not None else ""
-    summary = f"{rank}{rating}" or "Steam"
+    summary = f"{rank_text}{rating}" or "Steam"
     players = (
         f"{game['current_players']:,} players online"
         if game["current_players"] is not None
@@ -382,10 +370,8 @@ def _sort_by_rating(games: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def _display_timestamp(value: str) -> str:
-    """Display UTC timestamps to seconds, without noisy fractional seconds."""
-    timestamp = value.replace("T", " ").replace("+00:00", " UTC")
-    date_time, separator, timezone = timestamp.partition(" UTC")
-    return f"{date_time.split('.', maxsplit=1)[0]}{separator}{timezone}"
+    """Display timestamps in Thailand time, to second precision."""
+    return format_thailand_timestamp(value)
 
 
 def _go_to(page: str) -> None:
