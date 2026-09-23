@@ -114,3 +114,31 @@ def test_database_replaces_and_reads_the_live_top_snapshot(tmp_path):
     assert [game["name"] for game in games] == ["Counter-Strike 2"]
     assert games[0]["is_live_top"] == 1
     assert games[0]["players_updated_at"] == "2026-09-22T10:00:00+00:00"
+
+
+def test_database_orders_live_games_by_current_player_count(tmp_path):
+    database = GameDatabase(tmp_path / "games.db")
+    database.save_live_top_games(
+        [
+            {
+                **sample_game(game_id=-730, name="Fewer players"),
+                "steam_app_id": 730,
+                "steam_lookup_status": "found",
+                "current_players": 100,
+                "live_rank": 1,
+            },
+            {
+                **sample_game(game_id=-570, name="More players"),
+                "steam_app_id": 570,
+                "steam_lookup_status": "found",
+                "current_players": 200,
+                "live_rank": 2,
+            },
+        ],
+        "2026-09-22T10:00:00+00:00",
+    )
+
+    assert [game["name"] for game in database.get_live_top_games()] == [
+        "More players",
+        "Fewer players",
+    ]

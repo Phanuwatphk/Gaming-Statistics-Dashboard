@@ -142,30 +142,26 @@ def _render_collection_filters(games: list[dict[str, Any]]) -> list[dict[str, An
 
 
 def _render_search_page(game_service: GameService) -> None:
-    _page_heading("Search Games", "Find games in RAWG and save them to your library.")
-    search_term = st.text_input("Game title", placeholder="For example: Hades, Portal, or Minecraft")
+    _page_heading("Search Games", "Search your library first; missing games are fetched and saved automatically.")
+    with st.form("game-search"):
+        search_term = st.text_input(
+            "Game title", placeholder="For example: Hades, Portal, or Minecraft"
+        )
+        submitted = st.form_submit_button("Search", type="primary")
     if not search_term.strip():
         _render_empty_state("Ready to search", "Enter a game title above to see results.")
         return
+    if not submitted:
+        return
 
-    games = game_service.search_games(search_term)
+    try:
+        with st.spinner("Searching games..."):
+            games = game_service.search_or_import_games(search_term)
+    except (RawgApiError, DatabaseError, ValueError) as error:
+        st.error(str(error))
+        return
     if not games:
-        st.info("This game is not in your library yet. Search RAWG to add it.")
-    if st.button("Search and add to library", key="catalog-search", type="primary"):
-        try:
-            with st.spinner("Searching and adding game data..."):
-                games = game_service.search_and_import_games(search_term)
-                if games:
-                    game_service.refresh_current_players(
-                        force=True, game_ids={game["game_id"] for game in games}
-                    )
-            if games:
-                st.success(f"Added {len(games)} game(s) to your library.")
-            else:
-                st.warning(f'No games matched “{search_term.strip()}”.')
-        except (RawgApiError, DatabaseError, ValueError) as error:
-            st.error(str(error))
-    if not games:
+        _render_empty_state("No matching games", f'No games matched “{search_term.strip()}”.')
         return
     st.caption(f'Results for “{search_term.strip()}” · {len(games)} game(s)')
     _render_paginated_game_grid(
@@ -328,9 +324,16 @@ def _render_top_player_stat(total_players: int, latest_update: str) -> None:
 
 def _render_game_card(game: dict[str, Any], key_prefix: str, rank: int | None = None) -> None:
     if game["image"]:
-        st.image(game["image"], width="stretch")
+        st.markdown(
+            f'<img class="game-cover" src="{escape(str(game["image"]), quote=True)}" '
+            f'alt="Cover for {escape(str(game["name"]), quote=True)}">',
+            unsafe_allow_html=True,
+        )
     else:
-        st.markdown('<div class="game-card">No cover image available</div>', unsafe_allow_html=True)
+        st.markdown(
+            '<div class="game-cover game-cover--empty">No cover image available</div>',
+            unsafe_allow_html=True,
+        )
 
     rank_text = f"#{rank} · " if rank is not None else ""
     rating = f"Rating {game['rating']:.1f}" if game["rating"] is not None else ""
@@ -344,7 +347,7 @@ def _render_game_card(game: dict[str, Any], key_prefix: str, rank: int | None = 
     st.markdown(
         f'<div class="game-card"><div class="game-name">{escape(game["name"])}</div>'
         f'<div class="game-meta">{summary}</div>'
-        f'<div class="game-meta">{players}</div>{tags}</div>',
+        f'<div class="game-meta">{players}</div><div class="game-tags">{tags}</div></div>',
         unsafe_allow_html=True,
     )
     if st.button("View Details", key=f"detail-{key_prefix}-{game['game_id']}", width="stretch"):

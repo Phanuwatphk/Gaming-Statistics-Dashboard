@@ -99,6 +99,39 @@ def test_service_imports_rawg_search_results_into_the_local_database(tmp_path):
     assert [game["name"] for game in games] == ["Minecraft"]
 
 
+def test_service_searches_sqlite_before_requesting_rawg(tmp_path):
+    database = GameDatabase(tmp_path / "games.db")
+    database.insert_games(
+        [
+            {
+                "game_id": 1,
+                "name": "Portal 2",
+                "rating": None,
+                "released": None,
+                "genres": [],
+                "platforms": [],
+                "metacritic": None,
+                "ratings_count": None,
+                "image": None,
+            }
+        ]
+    )
+
+    class NoRequestRawgClient:
+        def search_games(self, search_term: str, page_size: int):
+            raise AssertionError("RAWG must not be called when SQLite has a match")
+
+    service = GameService(NoRequestRawgClient(), database)
+
+    assert [game["name"] for game in service.search_or_import_games("portal")] == ["Portal 2"]
+
+
+def test_service_imports_from_rawg_when_sqlite_has_no_match(tmp_path):
+    service = GameService(FakeRawgSearchClient(), GameDatabase(tmp_path / "games.db"))
+
+    assert [game["name"] for game in service.search_or_import_games("Minecraft")] == ["Minecraft"]
+
+
 class FakeSteamTopClient:
     def get_most_played_games(self, limit: int):
         assert limit == 100

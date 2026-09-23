@@ -55,10 +55,13 @@ def apply_dashboard_styles() -> None:
         .hero-stat-label { color: #bcd4f4; font-size: .82rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; }
         .hero-stat-value { color: #ffffff; font-size: 2.35rem; font-weight: 760; letter-spacing: -.04em; line-height: 1.2; margin-top: .35rem; }
         .hero-stat-note { color: #d4e4f8; font-size: .88rem; margin-top: .35rem; }
-        .game-card { background: #ffffff; border: 1px solid #dce7f5; border-radius: .8rem; padding: .9rem; min-height: 128px; box-shadow: 0 3px 12px rgba(28, 62, 106, .06); }
+        .game-cover { display: block; width: 100%; height: 9.25rem; object-fit: cover; border-radius: .8rem; background: #e8eef7; }
+        .game-cover--empty { display: grid; place-items: center; box-sizing: border-box; color: #60718a; font-size: .84rem; text-align: center; padding: 1rem; }
+        .game-card { box-sizing: border-box; height: 9.5rem; overflow: hidden; background: #ffffff; border: 1px solid #dce7f5; border-radius: .8rem; padding: .9rem; box-shadow: 0 3px 12px rgba(28, 62, 106, .06); }
         .game-name { color: #142644; font-weight: 700; font-size: 1rem; margin-top: .25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .game-meta { color: #60718a; font-size: .84rem; margin-top: .35rem; }
-        .tag { display: inline-block; background: #edf4ff; color: #3264aa; border-radius: 999px; font-size: .72rem; padding: .18rem .48rem; margin: .45rem .18rem 0 0; }
+        .game-meta { color: #60718a; font-size: .84rem; margin-top: .35rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .game-tags { display: flex; gap: .18rem; overflow: hidden; margin-top: .45rem; white-space: nowrap; }
+        .tag { display: block; flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; background: #edf4ff; color: #3264aa; border-radius: 999px; font-size: .72rem; padding: .18rem .48rem; }
         .empty-state { background: #ffffff; border: 1px dashed #b7c9e2; border-radius: 14px; padding: 3.5rem 1rem; text-align: center; color: #5c6f8a; }
         .detail-panel { background: #ffffff; border: 1px solid #dce7f5; border-radius: 12px; padding: 1.2rem; }
         .detail-label { color: #71819a; font-size: .78rem; margin-bottom: .15rem; }

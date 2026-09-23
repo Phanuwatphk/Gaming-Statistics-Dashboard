@@ -94,6 +94,15 @@ class GameService:
         """Find games from SQLite; a blank search deliberately returns no results."""
         return self.database.search_games(search_term)
 
+    def search_or_import_games(
+        self, search_term: str, page_size: int = PAGE_SIZE
+    ) -> list[dict[str, Any]]:
+        """Search SQLite first, fetching and saving RAWG results only on a miss."""
+        local_games = self.database.search_games(search_term)
+        if local_games:
+            return local_games
+        return self.search_and_import_games(search_term, page_size)
+
     def search_and_import_games(self, search_term: str, page_size: int = PAGE_SIZE) -> list[dict[str, Any]]:
         """Find titles in RAWG and make their normalized data available locally."""
         raw_games = self.api_client.search_games(search_term, page_size)

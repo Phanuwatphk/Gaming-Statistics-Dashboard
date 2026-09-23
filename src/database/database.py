@@ -263,7 +263,7 @@ class GameDatabase:
         return len(rows)
 
     def get_live_top_games(self, limit: int = 100) -> list[dict[str, Any]]:
-        """Read the latest Steam-ranked games in their API-provided order."""
+        """Read the latest Steam games ordered by current player count."""
         try:
             with self.connect() as connection:
                 self._prepare_schema(connection)
