@@ -332,18 +332,20 @@ Project Documentation และ Repository Structure
 
 # 🚀 Sprint 2 — Web UI, API & Database
 
-**Period:** TBD
-**Status:** ⏳ Planned
+**Period:** 20–24 September 2026
+**Status:** ✅ Completed
 
-> Section นี้จะถูก Update หลังจากดำเนินงาน Sprint 2
-> และจะบันทึกสิ่งที่ทีมเรียนรู้จากการพัฒนา Web UI,
-> การเชื่อมต่อ API และ Database
+> Sprint 2 เป็นช่วงที่ทีมพัฒนาระบบจาก CLI ใน Sprint 1
+> ให้เป็น Web Application และเชื่อมต่อข้อมูลจริงจาก API
+> พร้อมจัดเก็บข้อมูลผ่าน SQLite Database
 
 ## 1. Sprint Overview
 
 **Sprint Goal:**
 
-TBD
+พัฒนา Gaming Statistics Dashboard ให้สามารถใช้งานผ่าน Web Browser
+โดยเชื่อมต่อข้อมูลเกมจริงจาก RAWG API และจัดเก็บข้อมูลผ่าน SQLite Database
+พร้อมพัฒนา Backend / Data Flow ให้สามารถนำข้อมูลไปแสดงผลบน Web UI ได้
 
 **Main Focus:**
 
@@ -359,17 +361,36 @@ TBD
 
 > Update หลังจบ Sprint 2
 
-* [ ] Web UI
-* [ ] Dashboard
-* [ ] RAWG API Integration
-* [ ] API Data Retrieval
-* [ ] SQLite Database
-* [ ] Data Flow
-* [ ] Testing
+* [x] Web UI
+* [x] Dashboard
+* [x] RAWG API Integration
+* [x] API Data Retrieval
+* [x] SQLite Database
+* [x] Data Flow
+* [x] Testing
 
 **Update:**
 
-> TBD
+ทีมพัฒนา Streamlit Web Application สำหรับ Gaming Statistics Dashboard
+โดยเปลี่ยนจาก CLI ใน Sprint 1 มาเป็น Web Application ที่สามารถใช้งานผ่าน Web Browser
+
+มีการเชื่อมต่อ RAWG API เพื่อดึงข้อมูลเกมจริง เช่น Game Name, Rating,
+Released Date, Genres, Platforms, Metacritic Score และ Image
+
+นอกจากนี้ยังเพิ่ม Steam API สำหรับข้อมูลจำนวนผู้เล่นออนไลน์
+และ Steam Top 100 / Live Players
+
+ทีมพัฒนา SQLite Database สำหรับจัดเก็บข้อมูลเกม
+และสร้าง Game Service เพื่อจัดการ Application Logic
+รวมถึงเพิ่ม Data Processing และ Data Normalization
+ก่อนนำข้อมูลไปใช้งานใน Web Application
+
+ในส่วนของ Web UI มีการพัฒนา Game Library, Search,
+Genres, Top Rated, Live Players และ Game Detail
+รวมถึงเพิ่ม Filter, Pagination, Error Handling และ Empty State
+
+มีการจัดทำ Automated Tests สำหรับ API, Database,
+Service และ Data Processing modules
 
 ---
 
@@ -379,19 +400,39 @@ TBD
 
 ### Web Development
 
-> TBD
+ทีมได้เรียนรู้การพัฒนา Web Application ด้วย Streamlit
+และการออกแบบ Dashboard สำหรับแสดงข้อมูลเกมในรูปแบบที่ผู้ใช้สามารถค้นหา
+กรอง และดูรายละเอียดข้อมูลได้
+
+นอกจากนี้ยังได้เรียนรู้การจัดการ Page Navigation,
+Pagination, Error State และ Empty State บน Web UI
 
 ### API Integration
 
-> TBD
+ทีมได้เรียนรู้การเชื่อมต่อ REST API และการทำงานกับ JSON Response
+โดยใช้ RAWG API เป็นแหล่งข้อมูลหลักของเกม
+
+ทีมยังได้เรียนรู้การจัดการ API Key ผ่าน Environment Variable
+รวมถึงการตรวจสอบ API Response, API Error และข้อมูลที่อาจไม่ครบถ้วน
+
+นอกจากนี้ยังได้เรียนรู้การเชื่อมต่อ Steam API
+เพื่อดึงข้อมูลเกี่ยวกับจำนวนผู้เล่นและ Steam Top 100
 
 ### Database
 
-> TBD
+ทีมได้เรียนรู้การใช้ SQLite Database
+สำหรับจัดเก็บและจัดการข้อมูลเกมภายในระบบ
+
+รวมถึงการออกแบบการเชื่อมต่อระหว่าง Application
+กับ Database และการใช้ Database Layer แยกออกจากส่วนอื่นของระบบ
 
 ### Data Management
 
-> TBD
+ทีมได้เรียนรู้การทำ Data Processing และ Data Normalization
+เพื่อแปลงข้อมูลจาก API ให้อยู่ในรูปแบบที่เหมาะสมกับการนำไปใช้งาน
+
+นอกจากนี้ยังได้เรียนรู้การจัดการข้อมูลที่มี Missing Values
+และข้อมูลที่อาจมีรูปแบบแตกต่างกันจาก API
 
 ---
 
@@ -401,7 +442,12 @@ TBD
 
 | Problem | Impact | Solution | Result |
 | ------- | ------ | -------- | ------ |
-| TBD     | TBD    | TBD      | TBD    |
+| API Response มีข้อมูลซ้อนกันหลายระดับ | นำข้อมูลไปใช้งานโดยตรงได้ยาก | สร้าง Data Processing และ Data Normalization | ข้อมูลอยู่ในรูปแบบที่ระบบนำไปใช้งานต่อได้ |
+| RAWG และ Steam ใช้ข้อมูลระบุตัวเกมต่างกัน | ไม่สามารถเชื่อมข้อมูลเกมจากทั้งสอง API ได้โดยตรง | จัดการ Steam App ID Mapping | สามารถเชื่อมข้อมูลเกมกับ Steam ได้ในส่วนที่รองรับ |
+| API อาจตอบกลับช้าหรือเกิด Error | Web Application อาจแสดงผลผิดพลาดหรือไม่สามารถโหลดข้อมูลได้ | เพิ่ม Error Handling และ Empty State | ระบบสามารถจัดการกรณี API ใช้งานไม่ได้หรือไม่มีข้อมูล |
+| จำนวนข้อมูลเกมมีมาก | แสดงข้อมูลทั้งหมดในหน้าเดียวได้ยาก | เพิ่ม Pagination | ผู้ใช้สามารถดูข้อมูลเป็นหน้าได้ |
+| ข้อมูล Steam Player มีการเปลี่ยนแปลงตลอดเวลา | ต้องเรียก API ซ้ำบ่อยเพื่อให้ข้อมูลเป็นปัจจุบัน | ใช้ระบบ Refresh และ Snapshot | ลดการเรียก API ซ้ำและสามารถจัดเก็บข้อมูลล่าสุดไว้ใช้งาน |
+| การพัฒนาหลายส่วนพร้อมกัน | อาจทำให้ Code และ Module เชื่อมต่อกันผิดพลาด | แบ่ง API, Database, Service, Processing และ UI ออกจากกัน | สามารถพัฒนาและตรวจสอบแต่ละส่วนได้ง่ายขึ้น |
 
 ---
 
@@ -409,7 +455,35 @@ TBD
 
 > Update หลังจบ Sprint 2
 
-TBD
+ทีมแก้ไขปัญหาโดยแบ่งระบบออกเป็นหลาย Layer
+เพื่อให้แต่ละส่วนมีหน้าที่ชัดเจน ได้แก่
+
+```text
+Web UI
+   ↓
+Game Service
+   ↓
+Data Processing
+   ↓
+API / Database
+````
+
+สำหรับข้อมูลจาก API ทีมสร้าง Data Processing Layer
+เพื่อจัดรูปแบบและ Normalize ข้อมูลก่อนนำไปใช้งาน
+
+สำหรับปัญหาการเชื่อมต่อข้อมูลจาก RAWG และ Steam
+ทีมใช้ข้อมูลที่เกี่ยวข้องกับ Steam App ID เพื่อเชื่อมข้อมูลเกม
+ในส่วนที่สามารถรองรับได้
+
+สำหรับ API Error และข้อมูลที่ไม่มี
+ทีมเพิ่ม Error Handling และ Empty State
+เพื่อให้ Application สามารถทำงานต่อได้โดยไม่ Crash
+
+สำหรับข้อมูลจำนวนมาก ทีมเพิ่ม Pagination
+เพื่อช่วยลดปริมาณข้อมูลที่แสดงในแต่ละหน้า
+
+สำหรับ Steam Player Data ทีมเพิ่มระบบ Refresh และ Snapshot
+เพื่อจัดการข้อมูลที่เปลี่ยนแปลงตลอดเวลาและลดการเรียก API ซ้ำ
 
 ---
 
@@ -417,7 +491,29 @@ TBD
 
 > Update หลังจบ Sprint 2
 
-TBD
+ใน Sprint 2 ทีมมีการหมุนเวียน Role ตามที่กำหนด โดยแบ่งเป็น:
+
+| Role     | Member | Responsibility                                         |
+| -------- | ------ | ------------------------------------------------------ |
+| Planner  | ฟลุ๊ค  | Planning, Requirements, Architecture และ Documentation |
+| Coder    | ออม    | Web UI, API, Database, Service และ Data Processing     |
+| Debugger | คิม    | Testing, QA, Error Handling และ Edge Cases             |
+
+ทีมได้เรียนรู้ว่าการแบ่งงานตาม Role
+ช่วยให้แต่ละคนมีความรับผิดชอบที่ชัดเจนมากขึ้น
+
+Planner ต้องทำความเข้าใจ Scope และ Requirements
+ก่อนส่งต่อให้ Coder
+
+Coder ต้องพัฒนา Code ให้สอดคล้องกับ Requirements
+และแบ่ง Module ให้สามารถทำงานร่วมกับส่วนอื่นได้
+
+Debugger ต้องตรวจสอบทั้ง Normal Cases,
+Invalid Cases และ Error Cases
+
+การทำงานร่วมกันทำให้ทีมเห็นความสำคัญของการสื่อสาร
+ระหว่าง Planning, Development และ Testing
+เพื่อให้แต่ละส่วนของระบบสามารถทำงานร่วมกันได้
 
 ---
 
@@ -425,11 +521,11 @@ TBD
 
 > Update หลังจบ Sprint 2
 
-* Web UI: TBD
-* API: TBD
-* SQLite: TBD
-* Data Processing: TBD
-* Git / GitHub: TBD
+* Web UI: เรียนรู้การพัฒนา Web Application และ Dashboard ด้วย Streamlit รวมถึง Navigation, Pagination, Filter และ Empty State
+* API: เรียนรู้ REST API, JSON Response, RAWG API, Steam API, API Key และ API Error Handling
+* SQLite: เรียนรู้การสร้าง Database, การจัดเก็บข้อมูล และการเชื่อมต่อ Application กับ SQLite
+* Data Processing: เรียนรู้ Data Cleaning, Data Normalization และการจัดรูปแบบข้อมูลจาก API ก่อนนำไปใช้งาน
+* Git / GitHub: เรียนรู้การทำงานร่วมกันผ่าน Git/GitHub และการแบ่งงานระหว่างสมาชิกตาม Role
 
 ---
 
@@ -437,7 +533,13 @@ TBD
 
 > Update หลังจบ Sprint 2
 
-TBD
+ใน Sprint 2 ยังไม่มี Instructor Feedback เพิ่มเติม
+เนื่องจากเป็นส่วนที่ทีมพัฒนาต่อจาก Feedback ของ Sprint 1
+
+ทีมจึงนำ Feedback จาก Sprint 1
+เกี่ยวกับ Project Pitch, Project Plan, Timeline,
+Task Allocation, Change Log, Learning Log และ Contribution Metrics
+มาใช้ในการทำงานและปรับปรุง Documentation ของ Project
 
 ---
 
@@ -445,9 +547,13 @@ TBD
 
 > Update หลังจบ Sprint 2
 
-1. TBD
-2. TBD
-3. TBD
+1. Web Application ที่ใช้ External API จำเป็นต้องมี Error Handling และ Empty State เพื่อรองรับกรณี API ไม่สามารถใช้งานได้หรือไม่มีข้อมูล
+2. การแยกระบบออกเป็น API, Database, Service, Data Processing และ UI ช่วยให้ Code มีโครงสร้างชัดเจนและสามารถพัฒนาแต่ละส่วนได้ง่ายขึ้น
+3. การใช้ Database ช่วยให้ Application สามารถจัดเก็บและจัดการข้อมูลได้อย่างเป็นระบบ
+4. API Data อาจมีโครงสร้างและข้อมูลที่ไม่สมบูรณ์ จึงต้องมี Data Processing และ Data Normalization ก่อนนำไปใช้งาน
+5. ข้อมูลที่เปลี่ยนแปลงตลอดเวลา เช่น Steam Player Data ต้องมีการจัดการ Refresh และการจัดเก็บ Snapshot
+6. Pagination มีความสำคัญเมื่อ Application ต้องแสดงข้อมูลจำนวนมากบน Web UI
+7. การทดสอบควรทำควบคู่กับการพัฒนา เพื่อช่วยค้นหา Error และปัญหาจากการเชื่อมต่อระหว่างแต่ละ Module
 
 ---
 
@@ -455,21 +561,31 @@ TBD
 
 > Update หลังจบ Sprint 2
 
-TBD
+สิ่งที่เรียนรู้จาก Sprint 2
+จะถูกนำไปใช้ในการพัฒนา Sprint ถัดไป โดยเฉพาะ:
+
+* ใช้ Modular Architecture ต่อในการพัฒนา Features ใหม่
+* ใช้ Data Processing และ Data Normalization กับข้อมูลที่จะนำมาวิเคราะห์
+* ใช้ SQLite และ Service Layer เป็นส่วนหนึ่งของ Data Flow
+* ใช้ Error Handling กับ External API และ Database อย่างต่อเนื่อง
+* ใช้ Pagination และ Filtering เพื่อปรับปรุง User Experience
+* ทำ Automated Testing ควบคู่กับการพัฒนา Features
+* ใช้ Git/GitHub Workflow และการแบ่ง Role ต่อเนื่อง
+* Update Documentation ให้สอดคล้องกับการพัฒนาในแต่ละ Sprint
 
 ---
 
 ## 11. Sprint 2 Learning Summary
 
-| Learning Area   | Status |
-| --------------- | ------ |
-| Web UI          | ⏳ TBD  |
-| Dashboard       | ⏳ TBD  |
-| API Integration | ⏳ TBD  |
-| SQLite          | ⏳ TBD  |
-| Data Processing | ⏳ TBD  |
-| Testing         | ⏳ TBD  |
-| Teamwork        | ⏳ TBD  |
+| Learning Area   | Status    |
+| --------------- | --------- |
+| Web UI          | ✅ Learned |
+| Dashboard       | ✅ Learned |
+| API Integration | ✅ Learned |
+| SQLite          | ✅ Learned |
+| Data Processing | ✅ Learned |
+| Testing         | ✅ Learned |
+| Teamwork        | ✅ Learned |
 
 ---
 
@@ -583,7 +699,7 @@ TBD
 
 ---
 
-# 🚀 Sprint 4 — Integration, Testing & Finalization
+# 🚀 Final Sprint — Integration, Testing & Finalization
 
 **Period:** TBD
 **Status:** ⏳ Planned
@@ -608,7 +724,7 @@ TBD
 
 ## 2. What We Did
 
-> Update หลังจบ Sprint 4
+> Update หลังจบ Final Sprint
 
 TBD
 
@@ -616,7 +732,7 @@ TBD
 
 ## 3. What We Learned
 
-> Update หลังจบ Sprint 4
+> Update หลังจบ Final Sprint
 
 TBD
 
@@ -624,7 +740,7 @@ TBD
 
 ## 4. Problems & Challenges
 
-> Update หลังจบ Sprint 4
+> Update หลังจบ Final Sprint
 
 | Problem | Impact | Solution | Result |
 | ------- | ------ | -------- | ------ |
@@ -634,7 +750,7 @@ TBD
 
 ## 5. How We Solved Them
 
-> Update หลังจบ Sprint 4
+> Update หลังจบ Final Sprint
 
 TBD
 
@@ -642,7 +758,7 @@ TBD
 
 ## 6. Teamwork & Process Learning
 
-> Update หลังจบ Sprint 4
+> Update หลังจบ Fianl Sprint
 
 TBD
 
@@ -650,7 +766,7 @@ TBD
 
 ## 7. Technical Learning
 
-> Update หลังจบ Sprint 4
+> Update หลังจบ Fianl Sprint
 
 TBD
 
@@ -658,7 +774,7 @@ TBD
 
 ## 8. Instructor / Team Feedback
 
-> Update หลังจบ Sprint 4
+> Update หลังจบ Final Sprint
 
 TBD
 
@@ -666,7 +782,7 @@ TBD
 
 ## 9. Lessons Learned
 
-> Update หลังจบ Sprint 4
+> Update หลังจบ Final Sprint
 
 TBD
 
@@ -674,7 +790,7 @@ TBD
 
 ## 10. How We Will Apply This Learning
 
-เนื่องจาก Sprint 4 เป็น Sprint สุดท้าย
+เนื่องจาก Fianl Sprint เป็น Sprint สุดท้าย
 หัวข้อนี้สามารถใช้สรุปว่า
 ความรู้ทั้งหมดที่ได้จาก Project
 สามารถนำไปต่อยอดกับ Project อื่นหรือการพัฒนาทักษะของสมาชิกได้อย่างไร
@@ -683,7 +799,7 @@ TBD
 
 ---
 
-## 11. Sprint 4 Learning Summary
+## 11. Final Sprint Learning Summary
 
 | Learning Area      | Status |
 | ------------------ | ------ |
@@ -702,7 +818,7 @@ TBD
 Section นี้จะ Update เมื่อ Project ใกล้เสร็จ
 เพื่อสรุปสิ่งที่ทีมเรียนรู้ตลอดทั้ง Project
 
-| Area               | Sprint 1 | Sprint 2 | Sprint 3 | Sprint 4 |
+| Area               | Sprint 1 | Sprint 2 | Sprint 3 | Final Sprint |
 | ------------------ | -------- | -------- | -------- | -------- |
 | Planning           | ✅        | ⏳        | ⏳        | ⏳        |
 | Python             | ✅        | ⏳        | ⏳        | ⏳        |

@@ -61,12 +61,12 @@ Final Project
 
 # 3. Project Timeline
 
-| Sprint           | ช่วงเวลา | เป้าหมายหลัก                                     | Status      |
-| ---------------- | -------- | ------------------------------------------------ | ----------- |
-| **Sprint 1**     | Week 12  | Application Foundation และ CLI                   | ✅ Completed |
-| **Sprint 2**     | Week 13  | Web UI + RAWG API + SQLite                       | 🚧 In progress |
-| **Sprint 3**     | Week 14  | System Integration และ Core Features             | ⏳ Planned   |
-| **Final Sprint** | Week 15  | Testing, CI/CD, AI Integration และ Final Project | ⏳ Planned   |
+| Sprint                      | ช่วงเวลา             | เป้าหมายหลัก                                       | Status      |
+| --------------------------- | -------------------- | -------------------------------------------------- | ----------- |
+| **Sprint 1**                | 10–15 September 2026 | Application Foundation และ CLI                     | ✅ Completed |
+| **Sprint 2**                | 20–24 September 2026 | Web UI + API + SQLite + Backend Foundation         | ✅ Completed |
+| **Sprint 3**                | Planned              | Data Analysis, Visualization และ Advanced Features | ⏳ Planned   |
+| **Final Sprint** | Planned              | Testing, Integration, Final QA และ Final Project   | ⏳ Planned   |
 
 > กำหนดการของแต่ละ Sprint อ้างอิงตามแนวทางและกำหนดการของรายวิชา
 
@@ -125,34 +125,102 @@ Final Project
 
 พัฒนา Dashboard Interface ด้วย **Streamlit**
 
+รองรับ:
+
+* Web Dashboard
+* Navigation
+* Game Library
+* Search
+* Game Detail
+* Top Rated Games
+* Genres
+* Live Players
+* Pagination
+* Empty State
+
 ### API Integration
 
 เชื่อมต่อ **RAWG Video Games Database API**
 เพื่อดึงข้อมูลเกมมาใช้งานจริง
+
+ข้อมูลที่นำมาใช้ เช่น:
+
+* Game Name
+* Rating
+* Released Date
+* Genres
+* Platforms
+* Metacritic Score
+* Ratings Count
+* Image
+
+นอกจากนี้ยังเชื่อมต่อ **Steam API**
+สำหรับข้อมูลเกี่ยวกับ Current Player Count และ Steam Top 100 / Live Players
+
+### Data Processing
+
+เพิ่ม Data Processing และ Data Normalization
+เพื่อจัดรูปแบบข้อมูลจาก API ก่อนนำไปใช้งานใน Application
 
 ### Database
 
 เพิ่ม **SQLite Database**
 สำหรับจัดเก็บและจัดการข้อมูลเกม
 
-### Live player counts
+### Service Layer
 
-แสดงจำนวนผู้เล่นปัจจุบันจาก Steam สำหรับเกมที่จับคู่ Steam App ID ได้ โดยเก็บ
-ผลลัพธ์และเวลาอัปเดตไว้ใน SQLite เพื่อให้ผู้ใช้ทุกคนอ่านข้อมูลชุดเดียวกัน
+เพิ่ม **Game Service**
+เพื่อจัดการ Application Logic และเป็นตัวกลางระหว่าง UI,
+Data Processing, API และ Database
+
+### Filtering
+
+รองรับการ Filter ข้อมูลเกมตาม:
+
+* Genre
+* Platform
+* Minimum Rating
+
+### Live Player Data
+
+แสดงจำนวนผู้เล่นปัจจุบันจาก Steam
+สำหรับเกมที่สามารถจับคู่ Steam App ID ได้
+
+มีการจัดเก็บข้อมูลและเวลาอัปเดตไว้ใน SQLite
+พร้อมระบบ Refresh และ Snapshot เพื่อลดการเรียก API ซ้ำ
+
+### Testing
+
+เพิ่ม Automated Tests สำหรับส่วนสำคัญของระบบ เช่น:
+
+* API
+* Database
+* Game Service
+* Data Processing
+* Time Utilities
+* Dashboard
 
 ## Main Deliverable
 
 Web Dashboard ที่สามารถ:
 
 * เปิดใช้งานผ่าน Web Browser
-* แสดงข้อมูลเกม
+* แสดงข้อมูลเกมจริง
 * ดึงข้อมูลจาก RAWG API
+* เชื่อมต่อ Steam API
 * เชื่อมต่อ SQLite
-* แสดงข้อมูลจาก Database บน Dashboard
+* ประมวลผลและ Normalize ข้อมูล
+* ค้นหาเกม
+* Filter เกม
+* แสดงรายละเอียดเกม
+* แสดง Top Rated Games
+* แสดง Steam Live Players
+* รองรับ Pagination
+* จัดการ API Error และ Empty State
 
 ## Status
 
-**🚧 In progress**
+**✅ Completed**
 
 รายละเอียดการดำเนินงานของ Sprint 2:
 
@@ -160,41 +228,48 @@ Web Dashboard ที่สามารถ:
 
 ---
 
-# 6. Sprint 3 — System Integration & Core Features
+# 6. Sprint 3 — Data Analysis & Visualization
 
 ## Objective
 
-เชื่อมต่อส่วนต่าง ๆ ของระบบให้ทำงานร่วมกันอย่างสมบูรณ์
-และพัฒนา Core Features ของ Dashboard
+นำข้อมูลเกมที่ได้จาก Sprint 2
+มาพัฒนาเป็นส่วนของ Data Analysis และ Data Visualization
+เพื่อเพิ่มความสามารถในการวิเคราะห์และนำเสนอข้อมูลบน Dashboard
 
 ## Main Scope
 
-* Front-End / Back-End Integration
-* API และ Database Integration
-* Search
-* Filter
-* Sort
-* Statistics
-* Data Processing
+* Data Cleaning
+* Data Processing เพิ่มเติม
+* Exploratory Data Analysis (EDA)
+* Statistical Analysis
+* Data Visualization
+* Dashboard Statistics
+* Data Comparison
+* Advanced Filtering
+* Advanced Sorting
 * Data Consistency
-* Error Handling
-* Edge Case Handling
 * Integration Testing
 
 ## Main Deliverable
 
-ระบบ Gaming Statistics Dashboard ที่สามารถทำงานร่วมกันระหว่าง
+ระบบ Gaming Statistics Dashboard
+ที่สามารถนำข้อมูลเกมมาวิเคราะห์และแสดงผลในรูปแบบ Visualization
+เพื่อช่วยให้ผู้ใช้สามารถสำรวจและทำความเข้าใจข้อมูลได้ง่ายขึ้น
+
+ตัวอย่าง Data Flow:
 
 ```text
 Web UI
    ↓
-Application Logic
+Game Service
    ↓
 Data Processing
    ↓
-SQLite
-   ↑
-RAWG API
+Statistics / Analysis
+   ↓
+Visualization
+   ↓
+Dashboard
 ```
 
 ## Status
@@ -207,7 +282,7 @@ RAWG API
 
 ---
 
-# 7. Final Sprint — Testing, CI/CD & AI Integration
+# 7. Final Sprint
 
 ## Objective
 
@@ -220,7 +295,7 @@ RAWG API
 * pytest
 * GitHub Actions
 * CI/CD
-* AI Integration
+* Final Integration
 * Final QA
 * Bug Fixing
 * Performance / Reliability Checking
@@ -238,24 +313,27 @@ Gaming Statistics Dashboard เวอร์ชัน Final
 
 รายละเอียดการดำเนินงานของ Final Sprint:
 
-`Sprint4/` หรือเอกสาร Sprint ตามโครงสร้างที่จะกำหนดภายหลัง
+`Final Sprint/`
 
 ---
 
 # 8. Project Technology Roadmap
 
 | Technology         | Sprint 1 | Sprint 2 | Sprint 3 | Final Sprint |
-| ------------------ | -------- | -------- | -------- | ------------ |
-| Python             | ✅        | ✅        | ✅        | ✅            |
-| CLI                | ✅        | -        | -        | -            |
-| Streamlit          | -        | ✅        | ✅        | ✅            |
-| RAWG API           | -        | ✅        | ✅        | ✅            |
-| Pandas             | -        | ✅        | ✅        | ✅            |
-| SQLite             | -        | ✅        | ✅        | ✅            |
-| Data Visualization | -        | ✅        | ✅        | ✅            |
-| pytest             | -        | -        | Planned  | ✅            |
-| GitHub Actions     | -        | -        | -        | ✅            |
-| AI Integration     | -        | -        | -        | ✅            |
+| ------------------ | -------- | -------- | -------- | -------- |
+| Python             | ✅        | ✅        | ✅        | ✅        |
+| CLI                | ✅        | -        | -        | -        |
+| Streamlit          | -        | ✅        | ✅        | ✅        |
+| RAWG API           | -        | ✅        | ✅        | ✅        |
+| Steam API          | -        | ✅        | ✅        | ✅        |
+| Pandas             | -        | ✅        | ✅        | ✅        |
+| SQLite             | -        | ✅        | ✅        | ✅        |
+| Data Processing    | -        | ✅        | ✅        | ✅        |
+| Data Visualization | -        | -        | Planned  | ✅        |
+| pytest             | -        | ✅        | ✅        | ✅        |
+| GitHub Actions     | -        | -        | -        | Planned  |
+| CI/CD              | -        | -        | -        | Planned  |
+| AI Integration     | -        | -        | -        | Planned  |
 
 > เครื่องมือที่ยังไม่ถึง Sprint ของตัวเองจะยังไม่ถือว่าเป็นงานที่ดำเนินการเสร็จแล้ว
 
@@ -263,23 +341,30 @@ Gaming Statistics Dashboard เวอร์ชัน Final
 
 # 9. Project Deliverables Roadmap
 
-| Deliverable                | Sprint       |
-| -------------------------- | ------------ |
-| Project Pitch              | Sprint 1     |
-| Project Plan               | Sprint 1     |
-| CLI Foundation             | Sprint 1     |
-| Sprint 1 Documentation     | Sprint 1     |
-| Web Dashboard              | Sprint 2     |
-| RAWG API Integration       | Sprint 2     |
-| SQLite Database            | Sprint 2     |
-| Search / Filter / Sort     | Sprint 3     |
-| Statistics & Visualization | Sprint 3     |
-| Integration Testing        | Sprint 3     |
-| Automated Testing          | Final Sprint |
-| GitHub Actions / CI/CD     | Final Sprint |
-| AI Integration             | Final Sprint |
-| Final Documentation        | Final Sprint |
-| Final Presentation         | Final Sprint |
+| Deliverable                            | Sprint   |
+| -------------------------------------- | -------- |
+| Project Pitch                          | Sprint 1 |
+| Project Plan                           | Sprint 1 |
+| CLI Foundation                         | Sprint 1 |
+| Sprint 1 Documentation                 | Sprint 1 |
+| Web Dashboard                          | Sprint 2 |
+| RAWG API Integration                   | Sprint 2 |
+| Steam API Integration                  | Sprint 2 |
+| SQLite Database                        | Sprint 2 |
+| Game Service                           | Sprint 2 |
+| Data Processing / Normalization        | Sprint 2 |
+| Search / Filter / Pagination           | Sprint 2 |
+| Game Detail / Top Rated / Live Players | Sprint 2 |
+| Automated Tests — Initial Test Suite   | Sprint 2 |
+| Data Analysis / EDA                    | Sprint 3 |
+| Statistics & Visualization             | Sprint 3 |
+| Advanced Filtering / Sorting           | Sprint 3 |
+| Integration Testing                    | Sprint 3 |
+| Final QA                               | Final Sprint |
+| GitHub Actions / CI/CD                 | Final Sprint |
+| AI Integration                         | Final Sprint |
+| Final Documentation                    | Fianl Sprint |
+| Final Presentation                     | Final Sprint |
 
 ---
 
@@ -295,10 +380,14 @@ Gaming-Statistics-Dashboard/
 ├── docs/
 │   ├── Project_Pitch.md
 │   ├── Plan.md
-│   ├── Change_Log.md
-│   └── Learning_Log.md
+│   ├── CHANGELOG.md
+│   └── LEARNINGLOG.md
 │
 ├── src/
+│   ├── ...
+│   └── ...
+│
+├── tests/
 │   ├── ...
 │   └── ...
 │
@@ -311,7 +400,8 @@ Gaming-Statistics-Dashboard/
 ├── Sprint3/
 │   └── ...
 │
-└── ...
+└── Final Sprint/
+    └── ...
 ```
 
 ### Documentation Responsibilities
@@ -321,24 +411,45 @@ Gaming-Statistics-Dashboard/
 | `README.md`             | ภาพรวมของ Project และ Current Status                  |
 | `docs/Project_Pitch.md` | แนวคิด Problem, Solution, Technology และ Architecture |
 | `docs/Plan.md`          | แผนการพัฒนาโดยรวมของ Project และทุก Sprint            |
-| `docs/Change_Log.md`    | บันทึกการเปลี่ยนแปลงของ Project                       |
-| `docs/Learning_Log.md`  | บันทึกสิ่งที่ทีมเรียนรู้ระหว่างการพัฒนา               |
+| `docs/CHANGELOG.md`     | บันทึกการเปลี่ยนแปลงของ Project                       |
+| `docs/LEARNINGLOG.md`   | บันทึกสิ่งที่ทีมเรียนรู้ระหว่างการพัฒนา               |
 | `Sprint1/Sprint_1.md`   | รายละเอียดการดำเนินงานและผลลัพธ์ของ Sprint 1          |
-| `Sprint2/Sprint_2.md`   | รายละเอียดการดำเนินงานของ Sprint 2                    |
+| `Sprint2/Sprint_2.md`   | รายละเอียดการดำเนินงานและผลลัพธ์ของ Sprint 2          |
 | `Sprint3/`              | รายละเอียดการดำเนินงานของ Sprint 3                    |
+| `Final Sprint/`              | รายละเอียดการดำเนินงานของ Final Sprint                    |
 | `src/`                  | Source Code ของ Application                           |
+| `tests/`                | Automated Tests ของ Project                           |
 
 ---
 
 # 11. Team Planning
 
-ทีมมีสมาชิก 3 คน และใช้ Role หลักในการแบ่งความรับผิดชอบ
+ทีมมีสมาชิก 3 คน และใช้ Role Rotation
+ในการแบ่งความรับผิดชอบในแต่ละ Sprint
 
-| Member    | Primary Role | Main Responsibility                        |
-| --------- | ------------ | ------------------------------------------ |
-| **คิม**   | Planner      | Planning, Requirements และ Documentation   |
-| **ฟลุ๊ค** | Coder        | Application Development และ Implementation |
-| **ออม**   | Debugger     | Testing, QA และ Bug Verification           |
+## Team Members
+
+| Member               | Nickname |
+| -------------------- | -------- |
+| นายชิษณุพงศ์ ซู      | คิม      |
+| นายภานุวัฒน์ ผองแก้ว | ฟลุ๊ค    |
+| นายเดโชชิต โตวินัส   | ออม      |
+
+## Sprint 1 Roles
+
+| Member    | Role          | Main Responsibility                        |
+| --------- | ------------- | ------------------------------------------ |
+| **คิม**   | Planner       | Planning, Requirements และ Documentation   |
+| **ฟลุ๊ค** | Coder         | Application Development และ Implementation |
+| **ออม**   | Debugger / QA | Testing, QA และ Bug Verification           |
+
+## Sprint 2 Roles
+
+| Member    | Role          | Main Responsibility                                    |
+| --------- | ------------- | ------------------------------------------------------ |
+| **ฟลุ๊ค** | Planner       | Planning, Requirements, Architecture และ Documentation |
+| **ออม**   | Coder         | Web UI, API, Database, Service และ Data Processing     |
+| **คิม**   | Debugger / QA | Testing, QA, Error Handling และ Edge Cases             |
 
 การแบ่งงานแบบละเอียดของแต่ละ Sprint
 จะถูกระบุในไฟล์ Sprint ของ Sprint นั้น ๆ
@@ -357,6 +468,10 @@ Sprint 2 Team Tasks
 Sprint3/Sprint_3.md
         ↓
 Sprint 3 Team Tasks
+
+Final Sprint/
+        ↓
+Final Sprint Team Tasks
 ```
 
 ---
@@ -365,21 +480,25 @@ Sprint 3 Team Tasks
 
 ## Current Project Status
 
-| Sprint       | Status      |
-| ------------ | ----------- |
-| Sprint 1     | ✅ Completed |
-| Sprint 2     | ⏳ Planned   |
-| Sprint 3     | ⏳ Planned   |
+| Sprint   | Status      |
+| -------- | ----------- |
+| Sprint 1 | ✅ Completed |
+| Sprint 2 | ✅ Completed |
+| Sprint 3 | ⏳ Planned   |
 | Final Sprint | ⏳ Planned   |
 
 ### Current Stage
 
-**Sprint 1 Completed → Preparing for Sprint 2**
+**Sprint 1 Completed → Sprint 2 Completed → Preparing for Sprint 3**
 
 Sprint 1 ได้พัฒนา Application Foundation และ CLI เรียบร้อยแล้ว
 
-ขั้นตอนถัดไปของ Project คือการนำ Foundation จาก Sprint 1
-ไปพัฒนาเป็น Web Application ใน Sprint 2
+Sprint 2 ได้พัฒนา Web Application
+พร้อม RAWG API, Steam API, SQLite Database,
+Data Processing, Game Service และ Web Dashboard Features
+
+ขั้นตอนถัดไปของ Project คือการนำข้อมูลและระบบจาก Sprint 2
+ไปพัฒนา Data Analysis, Statistics และ Data Visualization ใน Sprint 3
 
 ---
 
@@ -393,15 +512,16 @@ Sprint 1 ได้พัฒนา Application Foundation และ CLI เรี
 * เปลี่ยนเป้าหมายของ Sprint
 * ได้รับ Feedback ที่ส่งผลต่อ Project Direction
 * เพิ่มหรือลด Major Feature
+* เปลี่ยนแปลงจากผลการพัฒนาใน Sprint ก่อนหน้า
 
 รายละเอียดการเปลี่ยนแปลงแต่ละครั้งจะถูกบันทึกเพิ่มเติมใน:
 
-`docs/Change_Log.md`
+`docs/CHANGELOG.md`
 
 ส่วนสิ่งที่ทีมเรียนรู้จากการพัฒนา
 จะถูกบันทึกใน:
 
-`docs/Learning_Log.md`
+`docs/LEARNINGLOG.md`
 
 ---
 
@@ -419,5 +539,3 @@ Project จะไม่ถือว่างานของ Sprint ถัดไ�
 
 การวางแผนจะถูกปรับตามผลการดำเนินงานและ Feedback
 ที่ได้รับในแต่ละ Sprint
-
-```
