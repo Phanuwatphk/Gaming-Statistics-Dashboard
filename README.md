@@ -544,6 +544,14 @@ Role มีการหมุนเวียนตาม Sprint
 | ออม    | Coder         |
 | คิม    | Debugger / QA |
 
+### Sprint 3
+
+| Member | Role |
+| ------ | ---- |
+| ออม | Planner |
+| คิม | Coder |
+| ฟลุ๊ค | Debugger |
+
 ---
 
 ## 🚀 Sprint Progress
@@ -552,33 +560,31 @@ Role มีการหมุนเวียนตาม Sprint
 | -------- | ------------------------------------------ | ----------- |
 | Sprint 1 | Application Foundation / CLI               | ✅ Completed |
 | Sprint 2 | Web UI / API / Database                    | ✅ Completed |
-| Sprint 3 | Data Processing / Analysis / Visualization | ⏳ Planned   |
+| Sprint 3 | Data Processing / Analysis / Visualization | ✅ Completed |
 | Final Sprint | Testing / Integration / Finalization       | ⏳ Planned   |
 
 ---
 
 ## 📈 Future Development
 
-Features ต่อไปจะพัฒนาตาม Sprint ที่เหลือ เช่น:
+Features ใน Final Sprint ที่เหลือ เช่น:
 
-* Data Cleaning
-* Data Analysis
-* Statistical Analysis
-* Data Visualization
-* Advanced Dashboard Features
-* Additional Search / Filter / Sort
-* Final Testing
 * Final Integration
+* Final QA และ Bug Fixing
+* Automated Testing / CI/CD
+* Performance / Reliability Improvement
+* Final Documentation
+* Final Presentation
 * Project Finalization
 
-> Features ในส่วนนี้เป็นแผนสำหรับ Sprint ถัดไป
-> และยังไม่ถือว่าเป็น Features ที่เสร็จสมบูรณ์ใน Version ปัจจุบัน
+> Features ในส่วนนี้เป็นแผนสำหรับ Final Sprint
+> และจะดำเนินการตาม Scope ที่กำหนด
 
 ---
 
 ## 📄 Project Status
 
-**Current Version:** Sprint 2
+**Current Version:** Sprint 3
 
 **Current Status:** ✅ Completed
 
@@ -587,8 +593,9 @@ Features ต่อไปจะพัฒนาตาม Sprint ที่เหล
 พร้อมมี Search, Filter, Pagination, Game Detail,
 Top Rated, Genres และ Live Players
 
-การพัฒนา Data Analysis และ Data Visualization
-จะดำเนินการต่อใน Sprint ถัดไป
+Sprint 3 ได้ต่อยอดด้าน Data Cleaning, EDA, Statistical Analysis, Dashboard Statistics, Data Visualization, Data Comparison และ Advanced Features
+
+ขั้นตอนถัดไปคือ Final Sprint สำหรับ Final Integration, Testing, CI/CD และการเตรียมส่งมอบ
 
 ---
 
