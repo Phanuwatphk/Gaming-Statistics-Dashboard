@@ -589,113 +589,140 @@ Task Allocation, Change Log, Learning Log และ Contribution Metrics
 
 ---
 
-# 🚀 Sprint 3 — Data Processing & Dashboard Development
+# 🚀 Sprint 3 — Data Analysis & Visualization
 
-**Period:** TBD
-**Status:** ⏳ Planned
+**Period:** 25–29 September 2026  
+**Duration:** 5 Days  
+**Status:** ✅ Completed
 
 ## 1. Sprint Overview
 
 **Sprint Goal:**
 
-TBD
+พัฒนาต่อยอด Gaming Statistics Dashboard จากระบบจัดการข้อมูลเกมใน Sprint 2 ให้สามารถเตรียมข้อมูล วิเคราะห์ข้อมูล และนำเสนอผลผ่าน Statistics และ Data Visualization พร้อมเพิ่มความสามารถในการสำรวจและเปรียบเทียบข้อมูล
 
 **Main Focus:**
 
-* Data Processing
-* Data Cleaning
-* Statistics
-* Dashboard Features
-* Search / Filter / Sort
+* Data Cleaning & Data Preparation
+* Exploratory Data Analysis (EDA)
+* Statistical Analysis
+* Dashboard Statistics
 * Data Visualization
+* Data Comparison
+* Advanced Filtering / Sorting
+* Data Consistency และ Integration Testing
 
 ---
 
 ## 2. What We Did
 
-> Update หลังจบ Sprint 3
+ใน Sprint 3 ทีมได้ต่อยอดจาก Web Application, API, Database และ Game Service ที่พัฒนาจาก Sprint 2 โดยมุ่งเน้นการนำข้อมูลเกมมาวิเคราะห์และแสดงผลบน Dashboard
 
-TBD
+งานหลักของ Sprint ประกอบด้วย Data Cleaning และ Data Preparation, EDA, Descriptive Statistics, Dashboard Statistics, Data Visualization, Data Comparison และการปรับปรุง Advanced Filtering / Sorting รวมถึงการตรวจสอบความสอดคล้องของข้อมูลระหว่างส่วนต่าง ๆ ของระบบ
 
 ---
 
 ## 3. What We Learned
 
-> Update หลังจบ Sprint 3
+### Data Preparation
 
-TBD
+การเตรียมข้อมูลเป็นขั้นตอนสำคัญก่อนทำ EDA และคำนวณ Statistics โดยควรตรวจสอบ Missing Values, Data Types และความครบถ้วนของข้อมูลก่อนนำไปใช้
+
+### Exploratory Data Analysis
+
+EDA ช่วยให้เห็นภาพรวมและการกระจายตัวของข้อมูลเกม รวมถึงช่วยกำหนดว่าควรนำเสนอข้อมูลด้วย Statistics หรือ Chart รูปแบบใด
+
+### Statistical Analysis
+
+การเลือกใช้ค่าสถิติควรพิจารณาประเภทข้อมูล จำนวนข้อมูลที่ใช้คำนวณ และข้อจำกัดของข้อมูล เพื่อให้การสรุปผลมีความเหมาะสม
+
+### Data Visualization
+
+Chart ควรเลือกให้เหมาะสมกับจุดประสงค์และชนิดข้อมูล พร้อมมีชื่อ แกน และคำอธิบายที่ชัดเจน เพื่อให้ผู้ใช้ตีความข้อมูลได้ถูกต้อง
 
 ---
 
 ## 4. Problems & Challenges
 
-> Update หลังจบ Sprint 3
+ปัญหาและรายละเอียดเฉพาะที่พบระหว่างการพัฒนาให้บันทึกเพิ่มเติมตาม Issue และผลการทดสอบของทีม
 
 | Problem | Impact | Solution | Result |
 | ------- | ------ | -------- | ------ |
-| TBD     | TBD    | TBD      | TBD    |
+| Data completeness / missing values | อาจส่งผลต่อการคำนวณและการแสดงผล | ตรวจสอบและจัดการข้อมูลตามเกณฑ์ Data Preparation | ตรวจสอบผลตาม Test Cases ของ Sprint |
+| Statistics and visualization consistency | ผลลัพธ์บน Dashboard ต้องตรงกับข้อมูลที่นำมาคำนวณ | ตรวจสอบค่าคำนวณและข้อมูลที่ใช้สร้าง Chart | ตรวจสอบผ่านการทดสอบที่เกี่ยวข้อง |
+| Integration of analysis with Dashboard | อาจทำให้ข้อมูลไม่แสดงผลตามตัวกรองหรือเงื่อนไข | ตรวจสอบการเชื่อมต่อระหว่าง Data Processing, Service และ UI | ตรวจสอบผ่าน Integration Testing |
 
 ---
 
 ## 5. How We Solved Them
 
-> Update หลังจบ Sprint 3
-
-TBD
+ทีมใช้ Data Cleaning และ Data Validation เพื่อเตรียมข้อมูลก่อนวิเคราะห์ ตรวจสอบผลการคำนวณ Statistics กับข้อมูลที่นำมาใช้ และตรวจสอบการเชื่อมต่อระหว่าง Analysis, Service และ Dashboard เพื่อให้ข้อมูลที่แสดงผลสอดคล้องกับเงื่อนไขที่เลือก
 
 ---
 
 ## 6. Teamwork & Process Learning
 
-> Update หลังจบ Sprint 3
+Sprint 3 มีการหมุนเวียน Role ดังนี้:
 
-TBD
+| สมาชิก | Role | หน้าที่หลัก |
+|---|---|---|
+| ออม | Planner | กำหนด Scope, Requirements, Definition of Done, แบ่งงาน และจัดทำ Documentation |
+| คิม | Coder | พัฒนา Data Processing, Analysis, Statistics, Visualization และ Features |
+| ฟลุ๊ค | Debugger | ออกแบบและดำเนินการทดสอบ ตรวจสอบ Data Quality และยืนยันการแก้ไข Bug |
+
+การแบ่ง Role ช่วยแยกความรับผิดชอบด้าน Planning, Implementation และ QA ให้ชัดเจน และช่วยให้การตรวจสอบงานเป็นไปตาม Scope ที่กำหนด
 
 ---
 
 ## 7. Technical Learning
 
-> Update หลังจบ Sprint 3
+### Data Processing
 
-TBD
+เรียนรู้การเตรียมข้อมูลและตรวจสอบคุณภาพข้อมูลก่อนนำไปวิเคราะห์ รวมถึงการจัดการ Missing Values และ Data Types ตามความเหมาะสม
+
+### EDA & Statistics
+
+เรียนรู้การสรุปข้อมูลด้วย Descriptive Statistics และการสำรวจการกระจายตัวของข้อมูลเกม เพื่อสนับสนุนการทำความเข้าใจชุดข้อมูล
+
+### Visualization
+
+เรียนรู้การนำเสนอข้อมูลด้วย Chart ที่เหมาะสมกับข้อมูลและวัตถุประสงค์ พร้อมตรวจสอบความถูกต้องของข้อมูลที่นำไปแสดงผล
+
+### Integration & Testing
+
+เรียนรู้การตรวจสอบการเชื่อมต่อระหว่าง Data Processing, Game Service, Database และ Dashboard รวมถึงการทดสอบกรณีข้อมูลว่างหรือไม่สมบูรณ์
 
 ---
 
 ## 8. Instructor / Team Feedback
 
-> Update หลังจบ Sprint 3
-
-TBD
+บันทึก Feedback เพิ่มเติมจากอาจารย์หรือทีม หากมีการให้ Feedback ระหว่างหรือหลัง Sprint 3
 
 ---
 
 ## 9. Lessons Learned
 
-> Update หลังจบ Sprint 3
-
-TBD
+การพัฒนา Dashboard ที่มีการวิเคราะห์ข้อมูลต้องให้ความสำคัญทั้งคุณภาพข้อมูล ความถูกต้องของการคำนวณ และความชัดเจนของ Visualization ควบคู่กับการเชื่อมต่อระบบให้ทำงานร่วมกันได้
 
 ---
 
 ## 10. How We Will Apply This Learning
 
-> Update หลังจบ Sprint 3
-
-TBD
+ความรู้จาก Sprint 3 จะนำไปใช้ใน Final Sprint เพื่อทดสอบระบบโดยรวม ปรับปรุงความน่าเชื่อถือของข้อมูล แก้ไขปัญหาที่เหลือ และเตรียม Documentation กับ Presentation สำหรับ Final Project
 
 ---
 
 ## 11. Sprint 3 Learning Summary
 
-| Learning Area      | Status |
-| ------------------ | ------ |
-| Data Processing    | ⏳ TBD  |
-| Data Cleaning      | ⏳ TBD  |
-| Statistics         | ⏳ TBD  |
-| Data Visualization | ⏳ TBD  |
-| Dashboard          | ⏳ TBD  |
-| Testing            | ⏳ TBD  |
-| Teamwork           | ⏳ TBD  |
+| Learning Area | Status |
+|---|---|
+| Data Processing | ✅ Completed |
+| Data Cleaning | ✅ Completed |
+| EDA & Statistics | ✅ Completed |
+| Data Visualization | ✅ Completed |
+| Dashboard Integration | ✅ Completed |
+| Testing | ✅ Completed |
+| Teamwork | ✅ Completed |
 
 ---
 

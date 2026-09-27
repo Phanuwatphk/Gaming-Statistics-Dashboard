@@ -5,6 +5,41 @@ All notable changes to the **Gaming Statistics Dashboard** project will be docum
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project follows Semantic Versioning.
 
 ---
+## [v0.3.0] - Sprint 3: Data Analysis & Visualization
+
+### Added
+
+- Added Data Cleaning and Data Preparation workflow for game data.
+- Added Exploratory Data Analysis (EDA) for game data.
+- Added descriptive statistical summaries for relevant game attributes.
+- Added Dashboard Statistics for summarizing game data.
+- Added Data Visualization for exploring rating, genre, platform, and other available attributes.
+- Added Data Comparison features for supported game groups.
+- Added Advanced Filtering and Advanced Sorting improvements.
+- Added Sprint 3 test coverage for data preparation, statistics, visualization, and integration.
+- Added Sprint 3 daily task allocation and contribution metrics.
+
+### Changed
+
+- Updated the Dashboard workflow to support analysis and visualization results.
+- Updated project documentation and roadmap for Sprint 3 completion.
+- Updated data exploration flow to support additional comparison and filtering features.
+
+### Fixed
+
+- Improved handling of missing or incomplete data in analysis and visualization workflows.
+- Improved consistency checks between processed data and Dashboard outputs.
+
+## Planner / Coder / Debugger Roles
+
+| สมาชิก | ชื่อเล่น | Role | หน้าที่ |
+|---|---|---|---|
+| นายเดโชชิต โตวินัส | ออม | Planner | Defined Sprint 3 scope, requirements, task allocation, Definition of Done, and Sprint 3 documentation. |
+| นายชิษณุพงศ์ ซู | คิม | Coder | Developed data preparation, EDA, statistics, visualization, and advanced features. |
+| นายภานุวัฒน์ ผองแก้ว | ฟลุ๊ค | Debugger | Tested data quality, statistical outputs, visualization, integration, edge cases, and verified fixes. |
+
+---
+
 ## [v0.2.0] - Sprint 2: Web Application, API & Database
 
 ### Added

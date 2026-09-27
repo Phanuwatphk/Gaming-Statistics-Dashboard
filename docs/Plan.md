@@ -65,7 +65,7 @@ Final Project
 | --------------------------- | -------------------- | -------------------------------------------------- | ----------- |
 | **Sprint 1**                | 10–15 September 2026 | Application Foundation และ CLI                     | ✅ Completed |
 | **Sprint 2**                | 20–24 September 2026 | Web UI + API + SQLite + Backend Foundation         | ✅ Completed |
-| **Sprint 3**                | Planned              | Data Analysis, Visualization และ Advanced Features | ⏳ Planned   |
+| **Sprint 3**                | 25–29 September 2026 | Data Analysis, Visualization และ Advanced Features | ✅ Completed |
 | **Final Sprint** | Planned              | Testing, Integration, Final QA และ Final Project   | ⏳ Planned   |
 
 > กำหนดการของแต่ละ Sprint อ้างอิงตามแนวทางและกำหนดการของรายวิชา
@@ -274,7 +274,7 @@ Dashboard
 
 ## Status
 
-**⏳ Planned**
+**✅ Completed**
 
 รายละเอียดการดำเนินงานของ Sprint 3:
 
@@ -329,7 +329,7 @@ Gaming Statistics Dashboard เวอร์ชัน Final
 | Pandas             | -        | ✅        | ✅        | ✅        |
 | SQLite             | -        | ✅        | ✅        | ✅        |
 | Data Processing    | -        | ✅        | ✅        | ✅        |
-| Data Visualization | -        | -        | Planned  | ✅        |
+| Data Visualization | -        | -        | ✅        | ✅        |
 | pytest             | -        | ✅        | ✅        | ✅        |
 | GitHub Actions     | -        | -        | -        | Planned  |
 | CI/CD              | -        | -        | -        | Planned  |
@@ -451,6 +451,14 @@ Gaming-Statistics-Dashboard/
 | **ออม**   | Coder         | Web UI, API, Database, Service และ Data Processing     |
 | **คิม**   | Debugger / QA | Testing, QA, Error Handling และ Edge Cases             |
 
+## Sprint 3 Roles
+
+| Member | Role | Main Responsibility |
+| --- | --- | --- |
+| **ออม** | Planner | Planning, Requirements, Task Allocation และ Documentation |
+| **คิม** | Coder | Data Processing, Analysis, Statistics, Visualization และ Feature Development |
+| **ฟลุ๊ค** | Debugger | Testing, QA, Data Validation และ Bug Verification |
+
 การแบ่งงานแบบละเอียดของแต่ละ Sprint
 จะถูกระบุในไฟล์ Sprint ของ Sprint นั้น ๆ
 
@@ -484,12 +492,12 @@ Final Sprint Team Tasks
 | -------- | ----------- |
 | Sprint 1 | ✅ Completed |
 | Sprint 2 | ✅ Completed |
-| Sprint 3 | ⏳ Planned   |
+| Sprint 3 | ✅ Completed |
 | Final Sprint | ⏳ Planned   |
 
 ### Current Stage
 
-**Sprint 1 Completed → Sprint 2 Completed → Preparing for Sprint 3**
+**Sprint 1 Completed → Sprint 2 Completed → Sprint 3 Completed → Preparing for Final Sprint**
 
 Sprint 1 ได้พัฒนา Application Foundation และ CLI เรียบร้อยแล้ว
 
@@ -497,8 +505,10 @@ Sprint 2 ได้พัฒนา Web Application
 พร้อม RAWG API, Steam API, SQLite Database,
 Data Processing, Game Service และ Web Dashboard Features
 
-ขั้นตอนถัดไปของ Project คือการนำข้อมูลและระบบจาก Sprint 2
-ไปพัฒนา Data Analysis, Statistics และ Data Visualization ใน Sprint 3
+Sprint 3 ได้พัฒนาต่อยอดระบบด้าน Data Analysis, Statistics และ Data Visualization
+พร้อม Advanced Features ตามขอบเขตของ Sprint
+
+ขั้นตอนถัดไปของ Project คือ Final Sprint ซึ่งมุ่งเน้นการทดสอบ การรวมระบบ และการเตรียมส่งมอบ Final Project
 
 ---
 

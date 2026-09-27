@@ -343,6 +343,10 @@ Data Processing
    ↓
 SQLite Database
    ↓
+Game Service
+   ↓
+Statistics / Analysis
+   ↓
 Application Logic
    ↓
 Streamlit Dashboard
@@ -368,7 +372,7 @@ Sprint 2
 Web UI + API + SQLite
     ↓
 Sprint 3
-Integration + Core Features
+Data Analysis + Visualization + Advanced Features
     ↓
 Final Sprint
 Testing + CI/CD + AI Integration
@@ -455,31 +459,38 @@ Dashboard
 
 ## Sprint 2 Status
 
-**⏳ Planned**
+**✅ Completed**
 
 ---
 
-# 12. Sprint 3 — Integration
+# 12. Sprint 3 — Data Analysis & Visualization
 
-Sprint 3 มีเป้าหมายเพื่อเชื่อมต่อส่วนต่าง ๆ ของระบบให้ทำงานร่วมกันอย่างสมบูรณ์
+Sprint 3 มุ่งพัฒนาต่อยอดจาก Web Application และข้อมูลที่เชื่อมต่อใน Sprint 2
+โดยเน้นการเตรียมข้อมูล วิเคราะห์ข้อมูล และนำเสนอผลผ่าน Dashboard
 
-Planned Tasks:
+## Main Scope
 
-* API Integration
-* Database Integration
-* Dashboard Integration
-* Search
-* Filter
-* Sort
-* Statistics
+* Data Cleaning และ Data Preparation
+* Exploratory Data Analysis (EDA)
+* Statistical Analysis และ Descriptive Statistics
+* Dashboard Statistics
+* Data Visualization
+* Data Comparison
+* Advanced Filtering และ Advanced Sorting
 * Data Consistency
-* Error Handling
-* Edge Case Handling
 * Integration Testing
+
+## Main Deliverable
+
+Gaming Statistics Dashboard ที่สามารถนำข้อมูลเกมมาวิเคราะห์และนำเสนอในรูปแบบ Statistics และ Visualization พร้อมปรับปรุงการสำรวจและเปรียบเทียบข้อมูลเกม
 
 ## Sprint 3 Status
 
-**⏳ Planned**
+**✅ Completed**
+
+รายละเอียดการดำเนินงานของ Sprint 3:
+
+`Sprint3/Sprint_3.md`
 
 ---
 
@@ -561,25 +572,15 @@ CLI Foundation, Menu Navigation, Basic Features, Input Validation และ QA �
 
 ## Sprint 2
 
-**⏳ Planned**
+**✅ Completed**
 
-จะพัฒนา:
-
-* Web Dashboard UI
-* RAWG API Integration
-* SQLite Database
-* การแสดงข้อมูลจริงบน Dashboard
+พัฒนา Web Dashboard, RAWG API, Steam API, SQLite Database, Game Service, Data Processing และ Core Features เรียบร้อยแล้ว
 
 ## Sprint 3
 
-**⏳ Planned**
+**✅ Completed**
 
-จะพัฒนา:
-
-* System Integration
-* Search / Filter / Sort
-* Statistics
-* Integration Testing
+พัฒนาการเตรียมข้อมูล, EDA, Statistical Analysis, Dashboard Statistics, Data Visualization, Data Comparison และ Advanced Features ตาม Scope ของ Sprint
 
 ## Final Sprint
 
