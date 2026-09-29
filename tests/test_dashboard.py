@@ -30,8 +30,9 @@ def test_genres_page_allows_a_game_in_multiple_genres(tmp_path, monkeypatch):
     )
     GameDatabase(database_path).set_metadata("players_last_refresh", datetime.now(UTC).isoformat())
     monkeypatch.setenv("GAMING_DASHBOARD_DB", str(database_path))
+    monkeypatch.setenv("GAMING_DASHBOARD_SKIP_REFRESH", "1")
 
-    app = AppTest.from_file(str(PROJECT_ROOT / "src" / "app.py")).run()
+    app = AppTest.from_file(str(PROJECT_ROOT / "src" / "app.py"), default_timeout=10,).run()
     app.button(key="navigation-genres").click().run()
 
     assert not app.exception

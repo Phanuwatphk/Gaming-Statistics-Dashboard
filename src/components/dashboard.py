@@ -7,7 +7,6 @@ from html import escape
 from typing import Any, Callable
 
 import streamlit as st
-import streamlit.components.v1 as components
 
 if __package__ and __package__.startswith("src."):
     from src.api.rawg_api import RawgApiError
@@ -481,24 +480,17 @@ def _go_to(page: str) -> None:
 def _scroll_to_top() -> None:
     """Schedule a top-of-page viewport reset for the following Streamlit run."""
     st.session_state.scroll_to_top = True
-    st.session_state.scroll_to_top_counter = (
-        st.session_state.get("scroll_to_top_counter", 0) + 1
-    )
 
 def _render_scroll_reset() -> None:
-    """Reset the main viewport after pagination/navigation reruns."""
-    scroll_counter = st.session_state.get("scroll_to_top_counter", 0)
-
-    components.html(
+    """Reset the main Streamlit viewport after pagination/navigation."""
+    st.html(
         """
         <script>
         (() => {
             const scrollToTop = () => {
                 try {
-                    const parentDocument = window.parent.document;
-
-                    const main = parentDocument.querySelector(
-                        '[data-testid="stMain"]'
+                    const main = document.querySelector(
+                        'section[data-testid="stMain"]'
                     );
 
                     if (main) {
@@ -509,44 +501,30 @@ def _render_scroll_reset() -> None:
                         });
                     }
 
-                    const appView = parentDocument.querySelector(
-                        '[data-testid="stAppViewContainer"]'
-                    );
-
-                    if (appView) {
-                        appView.scrollTo({
-                            top: 0,
-                            left: 0,
-                            behavior: "instant",
-                        });
+                    const activeElement = document.activeElement;
+                    if (
+                        activeElement &&
+                        typeof activeElement.blur === "function"
+                    ) {
+                        activeElement.blur();
                     }
 
-                    parentDocument.documentElement.scrollTo({
-                        top: 0,
-                        left: 0,
-                        behavior: "instant",
-                    });
-
-                    parentDocument.body.scrollTo({
-                        top: 0,
-                        left: 0,
-                        behavior: "instant",
-                    });
-
-                    window.parent.scrollTo(0, 0);
+                    window.scrollTo(0, 0);
                 } catch (_) {
-                    window.parent.scrollTo(0, 0);
+                    window.scrollTo(0, 0);
                 }
             };
 
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
                     scrollToTop();
+                    setTimeout(scrollToTop, 50);
+                    setTimeout(scrollToTop, 150);
+                    setTimeout(scrollToTop, 300);
                 });
             });
         })();
         </script>
         """,
-        width=scroll_counter % 2,
-        height=0,
+        unsafe_allow_javascript=True,
     )

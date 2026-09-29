@@ -67,7 +67,8 @@ def main() -> None:
     st.set_page_config(page_title="Gaming Statistics", layout="wide")
     try:
         game_service = build_game_service()
-        _refresh_dashboard_data(game_service, _live_refresh_interval())
+        if os.getenv("GAMING_DASHBOARD_SKIP_REFRESH") != "1":
+            _refresh_dashboard_data(game_service, _live_refresh_interval())
         if error := st.session_state.get("home_refresh_error"):
             st.warning(f"Showing the last saved Steam ranking: {error}")
         if error := st.session_state.get("catalog_refresh_error"):
