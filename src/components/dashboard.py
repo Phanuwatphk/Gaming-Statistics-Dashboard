@@ -478,46 +478,64 @@ def _go_to(page: str) -> None:
     _scroll_to_top()
     st.rerun()
 
-
 def _scroll_to_top() -> None:
     """Schedule a top-of-page viewport reset for the following Streamlit run."""
     st.session_state.scroll_to_top = True
-
+    st.session_state.scroll_to_top_counter = (
+        st.session_state.get("scroll_to_top_counter", 0) + 1
+    )
 
 def _render_scroll_reset() -> None:
     """Reset Streamlit's main and sidebar scroll containers after a rerun."""
-    components.html(
-        """
-        <script>
-        const scrollToTop = () => {
-            try {
-                const parentWindow = window.parent;
-                const parentDocument = parentWindow.document;
-                const targets = [
-                    parentWindow,
-                    parentDocument.scrollingElement,
-                    parentDocument.documentElement,
-                    parentDocument.body,
-                    parentDocument.querySelector('[data-testid="stAppViewContainer"]'),
-                    parentDocument.querySelector('[data-testid="stApp"]'),
-                    parentDocument.querySelector('[data-testid="stMain"]'),
-                    parentDocument.querySelector('[data-testid="stSidebar"]'),
-                    parentDocument.querySelector('[data-testid="stSidebarContent"]'),
-                    parentDocument.querySelector('.main'),
-                ];
-                targets.filter(Boolean).forEach((target) => {
-                    target.scrollTop = 0;
-                    target.scrollLeft = 0;
-                    target.scrollTo?.({top: 0, left: 0, behavior: 'auto'});
-                });
-            } catch (_) {
-                window.scrollTo({top: 0, left: 0, behavior: 'auto'});
-            }
-        };
+    counter = st.session_state.get("scroll_to_top_counter", 0)
 
-        // This component is rendered after the selected page. Wait until the
-        // next paint, reset once, then leave scrolling entirely to the user.
-        requestAnimationFrame(() => requestAnimationFrame(scrollToTop));
+    components.html(
+        f"""
+        <!-- scroll-reset-{counter} -->
+        <script>
+        (() => {{
+            const scrollToTop = () => {{
+                try {{
+                    const parentWindow = window.parent;
+                    const parentDocument = parentWindow.document;
+
+                    const targets = [
+                        parentWindow,
+                        parentDocument.scrollingElement,
+                        parentDocument.documentElement,
+                        parentDocument.body,
+                        parentDocument.querySelector('[data-testid="stAppViewContainer"]'),
+                        parentDocument.querySelector('[data-testid="stApp"]'),
+                        parentDocument.querySelector('[data-testid="stMain"]'),
+                        parentDocument.querySelector('[data-testid="stSidebar"]'),
+                        parentDocument.querySelector('[data-testid="stSidebarContent"]'),
+                        parentDocument.querySelector('.main'),
+                    ];
+
+                    targets
+                        .filter(Boolean)
+                        .forEach((target) => {{
+                            target.scrollTop = 0;
+                            target.scrollLeft = 0;
+
+                            if (typeof target.scrollTo === "function") {{
+                                target.scrollTo({{
+                                    top: 0,
+                                    left: 0,
+                                    behavior: "auto",
+                                }});
+                            }}
+                        }});
+
+                }} catch (_) {{
+                    window.parent.scrollTo(0, 0);
+                }}
+            }};
+
+            requestAnimationFrame(() => {{
+                requestAnimationFrame(scrollToTop);
+            }});
+        }})();
         </script>
         """,
         height=0,
