@@ -21,6 +21,12 @@ else:  # `streamlit run src/app.py` executes this module as a script.
     from database.database import DatabaseError, GameDatabase
     from services.game_service import GameService
 
+# import os
+# import streamlit as st
+import threading
+
+st.write("PID:", os.getpid())
+st.write("Thread:", threading.get_ident())
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_DATABASE_PATH = PROJECT_ROOT / "data" / "gaming_statistics.db"

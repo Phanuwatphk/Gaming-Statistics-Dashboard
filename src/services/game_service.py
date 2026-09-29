@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from math import ceil
 from typing import Any, Callable
+from threading import Lock
 
 if __package__ and __package__.startswith("src."):
     from src.api.rawg_api import RAWG_MAX_PAGE_SIZE, RawgApiClient
@@ -23,6 +24,10 @@ else:  # Supports imports when Streamlit runs src/app.py as a script.
 PAGE_SIZE = 100
 LIVE_TOP_GAMES_LIMIT = PAGE_SIZE
 
+# Shared lock for all GameService instances in this Streamlit process.
+# This prevents multiple Streamlit sessions/tabs from refreshing
+# the same shared database snapshot at the same time.
+_REFRESH_LOCK = Lock()
 
 @dataclass(frozen=True)
 class SyncResult:
@@ -140,69 +145,140 @@ class GameService:
         force: bool = False,
         game_ids: set[int] | None = None,
     ) -> PlayerRefreshResult:
-        """Refresh Steam counts, using a short shared cache to protect both APIs."""
-        now = thailand_now()
-        last_refresh = self.database.get_metadata("players_last_refresh")
-        if game_ids is None and not force and _is_fresh(last_refresh, now, minimum_interval):
-            return PlayerRefreshResult(0, 0, 0, skipped=True)
+        """
+        Refresh Steam player counts.
 
-        updated = unavailable = failed = 0
-        readings: list[tuple[int, int | None]] = []
-        for game in self.database.get_games():
-            if game_ids is not None and game["game_id"] not in game_ids:
-                continue
-            steam_app_id = game["steam_app_id"]
-            if game["steam_lookup_status"] == "unavailable":
-                unavailable += 1
-                continue
-            try:
-                if steam_app_id is None:
-                    steam_app_id = self.steam_client.find_app_id(game["name"])
-                    self.database.set_steam_mapping(game["game_id"], steam_app_id)
-                if steam_app_id is None:
+        A shared lock prevents multiple Streamlit sessions from
+        refreshing the same database simultaneously.
+        """
+        with _REFRESH_LOCK:
+            now = thailand_now()
+            last_refresh = self.database.get_metadata("players_last_refresh")
+
+            if (
+                game_ids is None
+                and not force
+                and _is_fresh(
+                    last_refresh,
+                    now,
+                    minimum_interval,
+                )
+            ):
+                return PlayerRefreshResult(
+                    0,
+                    0,
+                    0,
+                    skipped=True,
+                )
+
+            updated = 0
+            unavailable = 0
+            failed = 0
+            readings: list[tuple[int, int | None]] = []
+
+            for game in self.database.get_games():
+                if game_ids is not None and game["game_id"] not in game_ids:
+                    continue
+
+                steam_app_id = game["steam_app_id"]
+
+                if game["steam_lookup_status"] == "unavailable":
                     unavailable += 1
                     continue
-                current_players = self.steam_client.get_current_players(steam_app_id)
-                readings.append((game["game_id"], current_players))
-                updated += 1
-            except SteamConnectionError:
-                # A network failure will affect every following request too.
-                failed += 1
-                break
-            except SteamApiError:
-                failed += 1
 
-        self.database.update_current_players_bulk(readings, now.isoformat())
+                try:
+                    if steam_app_id is None:
+                        steam_app_id = self.steam_client.find_app_id(
+                            game["name"]
+                        )
+                        self.database.set_steam_mapping(
+                            game["game_id"],
+                            steam_app_id,
+                        )
 
-        if game_ids is None:
-            self.database.set_metadata("players_last_refresh", now.isoformat())
-        return PlayerRefreshResult(updated, unavailable, failed)
+                    if steam_app_id is None:
+                        unavailable += 1
+                        continue
+
+                    current_players = self.steam_client.get_current_players(
+                        steam_app_id
+                    )
+
+                    readings.append(
+                        (game["game_id"], current_players)
+                    )
+                    updated += 1
+
+                except SteamConnectionError:
+                    failed += 1
+                    break
+
+                except SteamApiError:
+                    failed += 1
+
+            self.database.update_current_players_bulk(
+                readings,
+                now.isoformat(),
+            )
+
+            if game_ids is None:
+                self.database.set_metadata(
+                    "players_last_refresh",
+                    now.isoformat(),
+                )
+
+            return PlayerRefreshResult(
+                updated,
+                unavailable,
+                failed,
+            )
 
     def refresh_catalog(
-        self, minimum_interval: timedelta = timedelta(minutes=15), force: bool = False
+        self,
+        minimum_interval: timedelta = timedelta(minutes=15),
+        force: bool = False,
     ) -> CatalogRefreshResult:
-        """Fetch up to 100 RAWG discoveries, save them, then let the UI read SQLite."""
-        now = thailand_now()
-        last_refresh = self.database.get_metadata("catalog_last_refresh")
-        if not force and _is_fresh(last_refresh, now, minimum_interval):
-            return CatalogRefreshResult(0, skipped=True)
+        """
+        Refresh RAWG discovery data once per shared interval.
 
-        # ``-added`` is RAWG's popularity signal (how often a game is added
-        # to player collections), making Home a discovery feed rather than a
-        # duplicate of Steam's live-player chart.
-        raw_games = _fetch_rawg_window(
-            lambda rawg_page: self.api_client.fetch_games(
-                RAWG_MAX_PAGE_SIZE, ordering="-added", page=rawg_page
-            ),
-            display_page=1,
-            page_size=PAGE_SIZE,
-        )
-        games = process_games(raw_games)
-        saved = self.database.save_catalog_games(
-            games, updated_at=now.isoformat(), replace_snapshot=True
-        )
-        self.database.set_metadata("catalog_last_refresh", now.isoformat())
-        return CatalogRefreshResult(saved)
+        Only one Streamlit session can perform the refresh at a time.
+        Other sessions wait and then re-check the database.
+        """
+        with _REFRESH_LOCK:
+            now = thailand_now()
+            last_refresh = self.database.get_metadata("catalog_last_refresh")
+
+            if not force and _is_fresh(
+                last_refresh,
+                now,
+                minimum_interval,
+            ):
+                return CatalogRefreshResult(0, skipped=True)
+
+            raw_games = _fetch_rawg_window(
+                lambda rawg_page: self.api_client.fetch_games(
+                    RAWG_MAX_PAGE_SIZE,
+                    ordering="-added",
+                    page=rawg_page,
+                ),
+                display_page=1,
+                page_size=PAGE_SIZE,
+            )
+
+            games = process_games(raw_games)
+
+            saved = self.database.save_catalog_games(
+                games,
+                updated_at=now.isoformat(),
+                replace_snapshot=True,
+            )
+
+            self.database.set_metadata(
+                "catalog_last_refresh",
+                now.isoformat(),
+            )
+
+            return CatalogRefreshResult(saved)
 
     def import_catalog_page(self, page: int, page_size: int = PAGE_SIZE) -> list[dict[str, Any]]:
         """Fetch, persist, and return one later page of RAWG popular discoveries."""
@@ -225,23 +301,59 @@ class GameService:
         return self.database.get_games_by_ids(game["game_id"] for game in games)
 
     def refresh_live_top_games(
-        self, minimum_interval: timedelta = timedelta(minutes=15), force: bool = False
+        self,
+        minimum_interval: timedelta = timedelta(minutes=15),
+        force: bool = False,
     ) -> LiveTopRefreshResult:
-        """Refresh Steam's Top 100 once per shared interval and persist the result."""
-        now = thailand_now()
-        last_refresh = self.database.get_metadata("live_top_last_refresh")
-        saved_games = self.database.get_live_top_games(limit=LIVE_TOP_GAMES_LIMIT)
-        if (
-            not force
-            and len(saved_games) >= LIVE_TOP_GAMES_LIMIT
-            and _is_fresh(last_refresh, now, minimum_interval)
-        ):
-            return LiveTopRefreshResult(len(saved_games), skipped=True)
+        """
+        Refresh Steam's Top 100 once per shared interval.
 
-        games = self.steam_client.get_most_played_games(limit=PAGE_SIZE)
-        saved = self.database.save_live_top_games(games, now.isoformat())
-        self.database.set_metadata("live_top_last_refresh", now.isoformat())
-        return LiveTopRefreshResult(saved)
+        Multiple Streamlit sessions may call this method at the same time.
+        The lock ensures that only one session performs the refresh.
+
+        After waiting for the lock, the session checks the database again.
+        If another session has already refreshed the data, this session
+        simply uses that new snapshot instead of calling Steam again.
+        """
+        with _REFRESH_LOCK:
+            # IMPORTANT:
+            # Re-read these values AFTER acquiring the lock.
+            # Another tab may have refreshed the database while we were waiting.
+            now = thailand_now()
+            last_refresh = self.database.get_metadata("live_top_last_refresh")
+            saved_games = self.database.get_live_top_games(
+                limit=LIVE_TOP_GAMES_LIMIT
+            )
+
+            # Another tab may have already completed the refresh.
+            if (
+                not force
+                and len(saved_games) >= LIVE_TOP_GAMES_LIMIT
+                and _is_fresh(last_refresh, now, minimum_interval)
+            ):
+                return LiveTopRefreshResult(
+                    len(saved_games),
+                    skipped=True,
+                )
+
+            # Only the session that reaches this point will call Steam.
+            games = self.steam_client.get_most_played_games(
+                limit=PAGE_SIZE
+            )
+
+            # Save one complete snapshot.
+            saved = self.database.save_live_top_games(
+                games,
+                now.isoformat(),
+            )
+
+            # Mark the shared database snapshot as refreshed.
+            self.database.set_metadata(
+                "live_top_last_refresh",
+                now.isoformat(),
+            )
+
+            return LiveTopRefreshResult(saved)
 
 
 def _is_fresh(value: str | None, now: datetime, interval: timedelta) -> bool:
