@@ -27,7 +27,9 @@ LIVE_TOP_GAMES_LIMIT = PAGE_SIZE
 # Shared lock for all GameService instances in this Streamlit process.
 # This prevents multiple Streamlit sessions/tabs from refreshing
 # the same shared database snapshot at the same time.
-_REFRESH_LOCK = Lock()
+_LIVE_TOP_REFRESH_LOCK = Lock()
+_CATALOG_REFRESH_LOCK = Lock()
+_PLAYERS_REFRESH_LOCK = Lock()
 
 @dataclass(frozen=True)
 class SyncResult:
@@ -151,7 +153,7 @@ class GameService:
         A shared lock prevents multiple Streamlit sessions from
         refreshing the same database simultaneously.
         """
-        with _REFRESH_LOCK:
+        with _PLAYERS_REFRESH_LOCK:
             now = thailand_now()
             last_refresh = self.database.get_metadata("players_last_refresh")
 
@@ -244,7 +246,7 @@ class GameService:
         Only one Streamlit session can perform the refresh at a time.
         Other sessions wait and then re-check the database.
         """
-        with _REFRESH_LOCK:
+        with _CATALOG_REFRESH_LOCK:
             now = thailand_now()
             last_refresh = self.database.get_metadata("catalog_last_refresh")
 
@@ -315,7 +317,7 @@ class GameService:
         If another session has already refreshed the data, this session
         simply uses that new snapshot instead of calling Steam again.
         """
-        with _REFRESH_LOCK:
+        with _LIVE_TOP_REFRESH_LOCK:
             # IMPORTANT:
             # Re-read these values AFTER acquiring the lock.
             # Another tab may have refreshed the database while we were waiting.
@@ -341,10 +343,12 @@ class GameService:
                 limit=PAGE_SIZE
             )
 
+            refreshed_at = thailand_now()
+            
             # Save one complete snapshot.
             saved = self.database.save_live_top_games(
                 games,
-                now.isoformat(),
+                refreshed_at.isoformat(),
             )
 
             # Mark the shared database snapshot as refreshed.
