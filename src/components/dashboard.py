@@ -486,18 +486,29 @@ def _scroll_to_top() -> None:
     )
 
 def _render_scroll_reset() -> None:
-    """Reset Streamlit's main and sidebar scroll containers after a rerun."""
-    counter = st.session_state.get("scroll_to_top_counter", 0)
+    """Reset the main viewport after pagination/navigation reruns."""
+    scroll_counter = st.session_state.get("scroll_to_top_counter", 0)
 
     components.html(
         f"""
-        <!-- scroll-reset-{counter} -->
+        <!-- scroll-reset-{scroll_counter} -->
         <script>
         (() => {{
             const scrollToTop = () => {{
                 try {{
                     const parentWindow = window.parent;
                     const parentDocument = parentWindow.document;
+
+                    // Remove focus from the pagination button so the browser
+                    // does not scroll back to it after the rerun.
+                    const activeElement = parentDocument.activeElement;
+                    if (
+                        activeElement &&
+                        activeElement !== parentDocument.body &&
+                        typeof activeElement.blur === "function"
+                    ) {{
+                        activeElement.blur();
+                    }}
 
                     const targets = [
                         parentWindow,
@@ -507,9 +518,7 @@ def _render_scroll_reset() -> None:
                         parentDocument.querySelector('[data-testid="stAppViewContainer"]'),
                         parentDocument.querySelector('[data-testid="stApp"]'),
                         parentDocument.querySelector('[data-testid="stMain"]'),
-                        parentDocument.querySelector('[data-testid="stSidebar"]'),
-                        parentDocument.querySelector('[data-testid="stSidebarContent"]'),
-                        parentDocument.querySelector('.main'),
+                        parentDocument.querySelector(".main"),
                     ];
 
                     targets
@@ -526,14 +535,18 @@ def _render_scroll_reset() -> None:
                                 }});
                             }}
                         }});
-
                 }} catch (_) {{
                     window.parent.scrollTo(0, 0);
                 }}
             }};
 
+            // Execute after Streamlit finishes rendering the new page.
             requestAnimationFrame(() => {{
-                requestAnimationFrame(scrollToTop);
+                requestAnimationFrame(() => {{
+                    scrollToTop();
+                    setTimeout(scrollToTop, 50);
+                    setTimeout(scrollToTop, 150);
+                }});
             }});
         }})();
         </script>
