@@ -490,66 +490,63 @@ def _render_scroll_reset() -> None:
     scroll_counter = st.session_state.get("scroll_to_top_counter", 0)
 
     components.html(
-        f"""
-        <!-- scroll-reset-{scroll_counter} -->
+        """
         <script>
-        (() => {{
-            const scrollToTop = () => {{
-                try {{
-                    const parentWindow = window.parent;
-                    const parentDocument = parentWindow.document;
+        (() => {
+            const scrollToTop = () => {
+                try {
+                    const parentDocument = window.parent.document;
 
-                    // Remove focus from the pagination button so the browser
-                    // does not scroll back to it after the rerun.
-                    const activeElement = parentDocument.activeElement;
-                    if (
-                        activeElement &&
-                        activeElement !== parentDocument.body &&
-                        typeof activeElement.blur === "function"
-                    ) {{
-                        activeElement.blur();
-                    }}
+                    const main = parentDocument.querySelector(
+                        '[data-testid="stMain"]'
+                    );
 
-                    const targets = [
-                        parentWindow,
-                        parentDocument.scrollingElement,
-                        parentDocument.documentElement,
-                        parentDocument.body,
-                        parentDocument.querySelector('[data-testid="stAppViewContainer"]'),
-                        parentDocument.querySelector('[data-testid="stApp"]'),
-                        parentDocument.querySelector('[data-testid="stMain"]'),
-                        parentDocument.querySelector(".main"),
-                    ];
+                    if (main) {
+                        main.scrollTo({
+                            top: 0,
+                            left: 0,
+                            behavior: "instant",
+                        });
+                    }
 
-                    targets
-                        .filter(Boolean)
-                        .forEach((target) => {{
-                            target.scrollTop = 0;
-                            target.scrollLeft = 0;
+                    const appView = parentDocument.querySelector(
+                        '[data-testid="stAppViewContainer"]'
+                    );
 
-                            if (typeof target.scrollTo === "function") {{
-                                target.scrollTo({{
-                                    top: 0,
-                                    left: 0,
-                                    behavior: "auto",
-                                }});
-                            }}
-                        }});
-                }} catch (_) {{
+                    if (appView) {
+                        appView.scrollTo({
+                            top: 0,
+                            left: 0,
+                            behavior: "instant",
+                        });
+                    }
+
+                    parentDocument.documentElement.scrollTo({
+                        top: 0,
+                        left: 0,
+                        behavior: "instant",
+                    });
+
+                    parentDocument.body.scrollTo({
+                        top: 0,
+                        left: 0,
+                        behavior: "instant",
+                    });
+
                     window.parent.scrollTo(0, 0);
-                }}
-            }};
+                } catch (_) {
+                    window.parent.scrollTo(0, 0);
+                }
+            };
 
-            // Execute after Streamlit finishes rendering the new page.
-            requestAnimationFrame(() => {{
-                requestAnimationFrame(() => {{
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
                     scrollToTop();
-                    setTimeout(scrollToTop, 50);
-                    setTimeout(scrollToTop, 150);
-                }});
-            }});
-        }})();
+                });
+            });
+        })();
         </script>
         """,
+        width=scroll_counter % 2,
         height=0,
     )
