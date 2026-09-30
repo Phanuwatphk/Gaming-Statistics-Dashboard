@@ -308,7 +308,7 @@ class GameService:
         force: bool = False,
     ) -> LiveTopRefreshResult:
         """
-        Refresh Steam's Top 100 once per shared interval.
+        Refresh the latest available Steam Top snapshot once per shared interval.
 
         Multiple Streamlit sessions may call this method at the same time.
         The lock ensures that only one session performs the refresh.
@@ -330,7 +330,7 @@ class GameService:
             # Another tab may have already completed the refresh.
             if (
                 not force
-                and len(saved_games) >= LIVE_TOP_GAMES_LIMIT
+                and saved_games
                 and _is_fresh(last_refresh, now, minimum_interval)
             ):
                 return LiveTopRefreshResult(

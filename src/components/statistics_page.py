@@ -16,7 +16,9 @@ import streamlit as st
 from typing import Any
 
 
-def render_statistics_page(games: list[dict[str, Any]]) -> None:
+def render_statistics_page(
+    games: list[dict[str, Any]], live_games: list[dict[str, Any]] | None = None
+) -> None:
     """Render the statistics route using already-loaded game records."""
     st.title("Statistics")
     st.caption("Explore descriptive statistics, distributions, and game comparisons.")
@@ -139,7 +141,7 @@ def render_statistics_page(games: list[dict[str, Any]]) -> None:
         st.info("No release-year data available.")
 
     _render_metacritic_distribution(games)
-    _render_live_player_chart(games)
+    _render_live_player_chart(live_games or [])
 
     game_names = sorted(game["name"] for game in games)
 
