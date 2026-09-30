@@ -25,7 +25,7 @@ Project นี้พัฒนาโดยใช้แนวทาง **Increment
 
 # 2. Project Development Approach
 
-Project ใช้แนวทางการพัฒนาแบบ Incremental Development
+Project ใช้แนวทางการพัฒนาแบบ **Incremental Development**
 
 ```text
 Project Planning
@@ -57,18 +57,21 @@ Final Project
 6. ปรับปรุงระบบและ Documentation
 7. นำผลลัพธ์ไปใช้เป็นพื้นฐานของ Sprint ถัดไป
 
+แนวทางนี้ช่วยให้ทีมสามารถพัฒนา Project ทีละส่วน
+และสามารถตรวจสอบผลลัพธ์ของแต่ละช่วงก่อนขยาย Scope
+ไปยัง Sprint ถัดไป
+
 ---
 
 # 3. Project Timeline
 
-| Sprint                      | ช่วงเวลา             | เป้าหมายหลัก                                       | Status      |
-| --------------------------- | -------------------- | -------------------------------------------------- | ----------- |
-| **Sprint 1**                | 10–15 September 2026 | Application Foundation และ CLI                     | ✅ Completed |
-| **Sprint 2**                | 20–24 September 2026 | Web UI + API + SQLite + Backend Foundation         | ✅ Completed |
-| **Sprint 3**                | 25–29 September 2026 | Data Analysis, Visualization และ Advanced Features | ✅ Completed |
-| **Final Sprint** | Planned              | Testing, Integration, Final QA และ Final Project   | ⏳ Planned   |
+| Sprint           | ช่วงเวลา             | เป้าหมายหลัก                                       | Status      |
+| ---------------- | -------------------- | -------------------------------------------------- | ----------- |
+| **Sprint 1**     | 10–15 September 2026 | Application Foundation และ CLI                     | ✅ Completed |
+| **Sprint 2**     | 20–24 September 2026 | Web UI + API + SQLite + Backend Foundation         | ✅ Completed |
+| **Sprint 3**     | 25–29 September 2026 | Data Analysis, Visualization และ Advanced Features | ✅ Completed |
+| **Final Sprint** | Planned              | Final Integration, Final QA และ Final Project      | ⏳ Planned   |
 
-> กำหนดการของแต่ละ Sprint อ้างอิงตามแนวทางและกำหนดการของรายวิชา
 
 ---
 
@@ -228,7 +231,7 @@ Web Dashboard ที่สามารถ:
 
 ---
 
-# 6. Sprint 3 — Data Analysis & Visualization
+# 6. Sprint 3 — Data Analysis, Visualization & Advanced Features
 
 ## Objective
 
@@ -236,41 +239,150 @@ Web Dashboard ที่สามารถ:
 มาพัฒนาเป็นส่วนของ Data Analysis และ Data Visualization
 เพื่อเพิ่มความสามารถในการวิเคราะห์และนำเสนอข้อมูลบน Dashboard
 
+พร้อมเพิ่มความสามารถในการสำรวจข้อมูลผ่าน:
+
+* Advanced Filtering
+* Advanced Sorting
+* Game Comparison
+* Data Consistency
+* Integration Testing
+
 ## Main Scope
+
+### Data Preparation
 
 * Data Cleaning
 * Data Processing เพิ่มเติม
+* Data Normalization
+* Data Validation
+* การจัดการ Missing / Optional Values
+
+### Data Analysis
+
 * Exploratory Data Analysis (EDA)
+* Descriptive Statistics
+* Summary Statistics
+* Genre Analysis
+* Platform Analysis
+* Rating Analysis
+* Release Year Analysis
+* Metacritic Analysis
+* Steam Live Player Analysis
+
+### Statistics
+
+รองรับสถิติเชิงพรรณนา เช่น:
+
+* Count
+* Mean
+* Median
+* Minimum
+* Maximum
+* Standard Deviation
+
+### Data Visualization
+
+เพิ่ม Visualization สำหรับ:
+
+* Genre Distribution
+* Platform Distribution
+* Rating by Genre
+* Release Year Distribution
+* Metacritic Score Distribution
+* Top Live Steam Players
+
+### Advanced Filtering
+
+รองรับการ Filter เพิ่มเติมตาม:
+
+* Genre
+* Platform
+* Minimum Rating
+* Release Year
+
+### Advanced Sorting
+
+รองรับการ Sort ตาม:
+
+* Rating
+* Release Date
+* Game Name
+
+พร้อมรองรับ:
+
+* Ascending
+* Descending
+
+และการจัดการ Missing Values ที่เกี่ยวข้องกับการ Sort
+
+### Game Comparison
+
+เพิ่มความสามารถในการเปรียบเทียบข้อมูลของเกม
+โดยใช้ข้อมูลที่ระบบรองรับ เช่น:
+
+* Rating
+* Metacritic Score
+* Steam Players
+
+### Dashboard Integration
+
+เชื่อม Analysis และ Visualization
+เข้ากับ Dashboard เพื่อให้ข้อมูลที่ผู้ใช้เห็น
+สอดคล้องกับข้อมูลที่ผ่าน Data Processing
+
+### Empty State
+
+รองรับกรณีที่ Filter แล้วไม่มีข้อมูลที่ตรงกับเงื่อนไข
+เพื่อไม่ให้ Dashboard แสดงผลผิดพลาด
+
+### Testing
+
+ทดสอบ:
+
+* Data Processing
 * Statistical Analysis
-* Data Visualization
-* Dashboard Statistics
-* Data Comparison
-* Advanced Filtering
-* Advanced Sorting
-* Data Consistency
-* Integration Testing
+* Visualization
+* Filtering
+* Sorting
+* Game Comparison
+* Dashboard Integration
+* Empty State
+* Regression Cases
 
 ## Main Deliverable
 
 ระบบ Gaming Statistics Dashboard
-ที่สามารถนำข้อมูลเกมมาวิเคราะห์และแสดงผลในรูปแบบ Visualization
-เพื่อช่วยให้ผู้ใช้สามารถสำรวจและทำความเข้าใจข้อมูลได้ง่ายขึ้น
+ที่สามารถนำข้อมูลเกมมาวิเคราะห์และแสดงผลในรูปแบบ Statistics
+และ Visualization พร้อมความสามารถในการ Filter, Sort
+และเปรียบเทียบข้อมูลเกม
 
 ตัวอย่าง Data Flow:
 
 ```text
-Web UI
-   ↓
-Game Service
-   ↓
+API / SQLite
+      ↓
 Data Processing
-   ↓
+      ↓
+Data Preparation
+      ↓
 Statistics / Analysis
-   ↓
+      ↓
 Visualization
-   ↓
+      ↓
 Dashboard
 ```
+
+## Sprint 3 Timeline
+
+Sprint 3 ดำเนินงานเป็นระยะเวลา 5 วัน:
+
+| วันที่            | Focus                            |
+| ----------------- | -------------------------------- |
+| 25 September 2026 | Planning & Technical Preparation |
+| 26 September 2026 | Data Processing & Analysis       |
+| 27 September 2026 | Statistics & Visualization       |
+| 28 September 2026 | Advanced Features & Integration  |
+| 29 September 2026 | Final QA & Documentation         |
 
 ## Status
 
@@ -291,16 +403,20 @@ Dashboard
 
 ## Main Scope
 
+* Final Integration
+* Final QA
+* Regression Testing
+* Bug Fixing
+* Performance / Reliability Checking
 * Automated Testing
 * pytest
 * GitHub Actions
 * CI/CD
-* Final Integration
-* Final QA
-* Bug Fixing
-* Performance / Reliability Checking
 * Final Documentation
 * Final Presentation
+
+> งานใน Final Sprint จะเริ่มดำเนินการตาม Scope
+> เมื่อเข้าสู่ Sprint สุดท้ายของ Project
 
 ## Main Deliverable
 
@@ -319,51 +435,62 @@ Gaming Statistics Dashboard เวอร์ชัน Final
 
 # 8. Project Technology Roadmap
 
-| Technology         | Sprint 1 | Sprint 2 | Sprint 3 | Final Sprint |
-| ------------------ | -------- | -------- | -------- | -------- |
-| Python             | ✅        | ✅        | ✅        | ✅        |
-| CLI                | ✅        | -        | -        | -        |
-| Streamlit          | -        | ✅        | ✅        | ✅        |
-| RAWG API           | -        | ✅        | ✅        | ✅        |
-| Steam API          | -        | ✅        | ✅        | ✅        |
-| Pandas             | -        | ✅        | ✅        | ✅        |
-| SQLite             | -        | ✅        | ✅        | ✅        |
-| Data Processing    | -        | ✅        | ✅        | ✅        |
-| Data Visualization | -        | -        | ✅        | ✅        |
-| pytest             | -        | ✅        | ✅        | ✅        |
-| GitHub Actions     | -        | -        | -        | Planned  |
-| CI/CD              | -        | -        | -        | Planned  |
-| AI Integration     | -        | -        | -        | Planned  |
+| Technology          | Sprint 1 | Sprint 2 | Sprint 3 | Final Sprint |
+| ------------------- | -------- | -------- | -------- | ------------ |
+| Python              | ✅        | ✅        | ✅        | ✅            |
+| CLI                 | ✅        | -        | -        | -            |
+| Streamlit           | -        | ✅        | ✅        | ✅            |
+| RAWG API            | -        | ✅        | ✅        | ✅            |
+| Steam API           | -        | ✅        | ✅        | ✅            |
+| Pandas              | -        | ✅        | ✅        | ✅            |
+| SQLite              | -        | ✅        | ✅        | ✅            |
+| Data Processing     | -        | ✅        | ✅        | ✅            |
+| Data Analysis / EDA | -        | -        | ✅        | ✅            |
+| Statistics          | -        | -        | ✅        | ✅            |
+| Data Visualization  | -        | -        | ✅        | ✅            |
+| Advanced Filtering  | -        | -        | ✅        | ✅            |
+| Advanced Sorting    | -        | -        | ✅        | ✅            |
+| Game Comparison     | -        | -        | ✅        | ✅            |
+| pytest              | -        | ✅        | ✅        | ✅            |
+| GitHub Actions      | -        | -        | -        | Planned      |
+| CI/CD               | -        | -        | -        | Planned      |
+| AI Integration      | -        | -        | -        | Planned      |
 
-> เครื่องมือที่ยังไม่ถึง Sprint ของตัวเองจะยังไม่ถือว่าเป็นงานที่ดำเนินการเสร็จแล้ว
+> เครื่องมือหรือ Features ที่ยังไม่ถึง Sprint ของตัวเอง
+> จะยังไม่ถือว่าเป็นงานที่ดำเนินการเสร็จแล้ว
 
 ---
 
 # 9. Project Deliverables Roadmap
 
-| Deliverable                            | Sprint   |
-| -------------------------------------- | -------- |
-| Project Pitch                          | Sprint 1 |
-| Project Plan                           | Sprint 1 |
-| CLI Foundation                         | Sprint 1 |
-| Sprint 1 Documentation                 | Sprint 1 |
-| Web Dashboard                          | Sprint 2 |
-| RAWG API Integration                   | Sprint 2 |
-| Steam API Integration                  | Sprint 2 |
-| SQLite Database                        | Sprint 2 |
-| Game Service                           | Sprint 2 |
-| Data Processing / Normalization        | Sprint 2 |
-| Search / Filter / Pagination           | Sprint 2 |
-| Game Detail / Top Rated / Live Players | Sprint 2 |
-| Automated Tests — Initial Test Suite   | Sprint 2 |
-| Data Analysis / EDA                    | Sprint 3 |
-| Statistics & Visualization             | Sprint 3 |
-| Advanced Filtering / Sorting           | Sprint 3 |
-| Integration Testing                    | Sprint 3 |
+| Deliverable                            | Sprint       |
+| -------------------------------------- | ------------ |
+| Project Pitch                          | Sprint 1     |
+| Project Plan                           | Sprint 1     |
+| CLI Foundation                         | Sprint 1     |
+| Sprint 1 Documentation                 | Sprint 1     |
+| Web Dashboard                          | Sprint 2     |
+| RAWG API Integration                   | Sprint 2     |
+| Steam API Integration                  | Sprint 2     |
+| SQLite Database                        | Sprint 2     |
+| Game Service                           | Sprint 2     |
+| Data Processing / Normalization        | Sprint 2     |
+| Search / Filter / Pagination           | Sprint 2     |
+| Game Detail / Top Rated / Live Players | Sprint 2     |
+| Automated Tests — Initial Test Suite   | Sprint 2     |
+| Data Analysis / EDA                    | Sprint 3     |
+| Statistics                             | Sprint 3     |
+| Data Visualization                     | Sprint 3     |
+| Advanced Filtering                     | Sprint 3     |
+| Advanced Sorting                       | Sprint 3     |
+| Game Comparison                        | Sprint 3     |
+| Integration Testing                    | Sprint 3     |
+| Final Integration                      | Final Sprint |
 | Final QA                               | Final Sprint |
+| Regression Testing                     | Final Sprint |
 | GitHub Actions / CI/CD                 | Final Sprint |
 | AI Integration                         | Final Sprint |
-| Final Documentation                    | Fianl Sprint |
+| Final Documentation                    | Final Sprint |
 | Final Presentation                     | Final Sprint |
 
 ---
@@ -398,7 +525,7 @@ Gaming-Statistics-Dashboard/
 │   └── Sprint_2.md
 │
 ├── Sprint3/
-│   └── ...
+│   └── Sprint_3.md
 │
 └── Final Sprint/
     └── ...
@@ -415,8 +542,8 @@ Gaming-Statistics-Dashboard/
 | `docs/LEARNINGLOG.md`   | บันทึกสิ่งที่ทีมเรียนรู้ระหว่างการพัฒนา               |
 | `Sprint1/Sprint_1.md`   | รายละเอียดการดำเนินงานและผลลัพธ์ของ Sprint 1          |
 | `Sprint2/Sprint_2.md`   | รายละเอียดการดำเนินงานและผลลัพธ์ของ Sprint 2          |
-| `Sprint3/`              | รายละเอียดการดำเนินงานของ Sprint 3                    |
-| `Final Sprint/`              | รายละเอียดการดำเนินงานของ Final Sprint                    |
+| `Sprint3/Sprint_3.md`   | รายละเอียดการดำเนินงานและผลลัพธ์ของ Sprint 3          |
+| `Final Sprint/`         | รายละเอียดการดำเนินงานของ Final Sprint                |
 | `src/`                  | Source Code ของ Application                           |
 | `tests/`                | Automated Tests ของ Project                           |
 
@@ -424,7 +551,7 @@ Gaming-Statistics-Dashboard/
 
 # 11. Team Planning
 
-ทีมมีสมาชิก 3 คน และใช้ Role Rotation
+ทีมมีสมาชิก 3 คน และใช้ **Role Rotation**
 ในการแบ่งความรับผิดชอบในแต่ละ Sprint
 
 ## Team Members
@@ -435,6 +562,8 @@ Gaming-Statistics-Dashboard/
 | นายภานุวัฒน์ ผองแก้ว | ฟลุ๊ค    |
 | นายเดโชชิต โตวินัส   | ออม      |
 
+---
+
 ## Sprint 1 Roles
 
 | Member    | Role          | Main Responsibility                        |
@@ -442,6 +571,8 @@ Gaming-Statistics-Dashboard/
 | **คิม**   | Planner       | Planning, Requirements และ Documentation   |
 | **ฟลุ๊ค** | Coder         | Application Development และ Implementation |
 | **ออม**   | Debugger / QA | Testing, QA และ Bug Verification           |
+
+---
 
 ## Sprint 2 Roles
 
@@ -451,13 +582,24 @@ Gaming-Statistics-Dashboard/
 | **ออม**   | Coder         | Web UI, API, Database, Service และ Data Processing     |
 | **คิม**   | Debugger / QA | Testing, QA, Error Handling และ Edge Cases             |
 
+---
+
 ## Sprint 3 Roles
 
-| Member | Role | Main Responsibility |
-| --- | --- | --- |
-| **ออม** | Planner | Planning, Requirements, Task Allocation และ Documentation |
-| **คิม** | Coder | Data Processing, Analysis, Statistics, Visualization และ Feature Development |
-| **ฟลุ๊ค** | Debugger | Testing, QA, Data Validation และ Bug Verification |
+| Member    | Role     | Main Responsibility                                                          |
+| --------- | -------- | ---------------------------------------------------------------------------- |
+| **ออม**   | Planner  | Planning, Requirements, Task Allocation และ Documentation                    |
+| **คิม**   | Coder    | Data Processing, Analysis, Statistics, Visualization และ Feature Development |
+| **ฟลุ๊ค** | Debugger | Testing, QA, Data Validation และ Bug Verification                            |
+
+---
+
+## Final Sprint Roles
+
+**TBD**
+
+Role ของ Final Sprint จะกำหนดเมื่อเริ่ม Final Sprint
+และจะบันทึกไว้ในเอกสารของ Final Sprint
 
 การแบ่งงานแบบละเอียดของแต่ละ Sprint
 จะถูกระบุในไฟล์ Sprint ของ Sprint นั้น ๆ
@@ -488,11 +630,11 @@ Final Sprint Team Tasks
 
 ## Current Project Status
 
-| Sprint   | Status      |
-| -------- | ----------- |
-| Sprint 1 | ✅ Completed |
-| Sprint 2 | ✅ Completed |
-| Sprint 3 | ✅ Completed |
+| Sprint       | Status      |
+| ------------ | ----------- |
+| Sprint 1     | ✅ Completed |
+| Sprint 2     | ✅ Completed |
+| Sprint 3     | ✅ Completed |
 | Final Sprint | ⏳ Planned   |
 
 ### Current Stage
@@ -505,16 +647,21 @@ Sprint 2 ได้พัฒนา Web Application
 พร้อม RAWG API, Steam API, SQLite Database,
 Data Processing, Game Service และ Web Dashboard Features
 
-Sprint 3 ได้พัฒนาต่อยอดระบบด้าน Data Analysis, Statistics และ Data Visualization
-พร้อม Advanced Features ตามขอบเขตของ Sprint
+Sprint 3 ได้พัฒนาต่อยอดระบบด้าน Data Analysis,
+Statistics และ Data Visualization
+พร้อม Advanced Features ได้แก่ Filtering, Sorting
+และ Game Comparison ตามขอบเขตของ Sprint
 
-ขั้นตอนถัดไปของ Project คือ Final Sprint ซึ่งมุ่งเน้นการทดสอบ การรวมระบบ และการเตรียมส่งมอบ Final Project
+ขั้นตอนถัดไปของ Project คือ Final Sprint
+ซึ่งมุ่งเน้นการรวมระบบ การทดสอบขั้นสุดท้าย
+การแก้ไขปัญหา และการเตรียมส่งมอบ Final Project
 
 ---
 
 # 13. Plan Maintenance
 
-`Plan.md` เป็นเอกสารระดับ Project และจะถูกปรับปรุงเมื่อ Project มีการเปลี่ยนแปลงที่สำคัญ เช่น
+`Plan.md` เป็นเอกสารระดับ Project
+และจะถูกปรับปรุงเมื่อ Project มีการเปลี่ยนแปลงที่สำคัญ เช่น:
 
 * เปลี่ยน Scope ของ Project
 * เปลี่ยน Technology
@@ -523,6 +670,7 @@ Sprint 3 ได้พัฒนาต่อยอดระบบด้าน Data
 * ได้รับ Feedback ที่ส่งผลต่อ Project Direction
 * เพิ่มหรือลด Major Feature
 * เปลี่ยนแปลงจากผลการพัฒนาใน Sprint ก่อนหน้า
+* เปลี่ยนแปลงสถานะของ Sprint
 
 รายละเอียดการเปลี่ยนแปลงแต่ละครั้งจะถูกบันทึกเพิ่มเติมใน:
 
@@ -549,3 +697,128 @@ Project จะไม่ถือว่างานของ Sprint ถัดไ�
 
 การวางแผนจะถูกปรับตามผลการดำเนินงานและ Feedback
 ที่ได้รับในแต่ละ Sprint
+
+---
+
+# 15. Sprint 3 Daily Work Plan
+
+Sprint 3 ดำเนินงานเป็นระยะเวลา 5 วัน
+ตั้งแต่วันที่ **25–29 September 2026**
+
+| วันที่          | Planner — ออม                                     | Coder — คิม                                                                  | Debugger — ฟลุ๊ค                                | ผลการดำเนินงาน                   |
+| --------------- | ------------------------------------------------- | ---------------------------------------------------------------------------- | ----------------------------------------------- | -------------------------------- |
+| **25 Sep 2569** | กำหนด Sprint Goal, Scope, Requirements และแบ่งงาน | ตรวจสอบ Source Code เดิมและงานที่ต่อเนื่องจาก Sprint 2                       | เตรียม Test Cases และจุดตรวจสอบ                 | Planning & Technical Preparation |
+| **26 Sep 2569** | ติดตามความคืบหน้าและควบคุม Scope                  | พัฒนา Data Processing, Data Normalization และ Analysis Layer                 | ทดสอบ Data Processing, Type และ Missing Data    | Data Processing & Analysis       |
+| **27 Sep 2569** | ติดตาม Requirements ของ Statistics Dashboard      | พัฒนา Statistics Page, Summary Statistics และ Visualization                  | ทดสอบ Statistics และ Charts                     | Statistics & Visualization       |
+| **28 Sep 2569** | ติดตาม Advanced Features และ Integration          | พัฒนา Advanced Filtering, Sorting, Game Comparison และ Dashboard Integration | ทดสอบ Filter, Sort, Comparison และ Integration  | Advanced Features & Integration  |
+| **29 Sep 2569** | ตรวจสอบ Definition of Done และจัดทำ Documentation | แก้ไข Bugs และเตรียม Source สำหรับ Final QA                                  | Final QA, Regression Test และตรวจสอบ Test Cases | Final QA & Documentation         |
+
+---
+
+# 16. Project Completion Criteria
+
+Project จะถือว่าเข้าสู่ Final Stage
+เมื่อ Features หลักจาก Sprint 1–3
+สามารถทำงานร่วมกันได้ตาม Scope ที่กำหนด
+
+เกณฑ์หลักประกอบด้วย:
+
+### Application
+
+* Web Application สามารถเปิดใช้งานได้
+* Dashboard สามารถแสดงข้อมูลเกมได้
+* Navigation ทำงานได้
+* Search และ Filtering ทำงานได้
+* Game Detail ทำงานได้
+
+### Data
+
+* RAWG API สามารถเชื่อมต่อได้
+* Steam API สามารถเชื่อมต่อได้ในส่วนที่ระบบรองรับ
+* SQLite สามารถจัดเก็บข้อมูลได้
+* Data Processing สามารถเตรียมข้อมูลสำหรับ Application ได้
+
+### Analysis
+
+* Statistics สามารถคำนวณจากข้อมูลที่เตรียมแล้ว
+* Data Visualization สามารถแสดงข้อมูลได้
+* Advanced Filtering ทำงานได้
+* Advanced Sorting ทำงานได้
+* Game Comparison ทำงานได้
+
+### Reliability
+
+* API Error มีการจัดการ
+* Empty State มีการจัดการ
+* Missing / Optional Data มีการจัดการ
+* Application ไม่ควร Crash จาก Input หรือ Data ที่ไม่เป็นไปตามปกติ
+
+### Testing
+
+* Features หลักได้รับการทดสอบ
+* Integration ระหว่าง Module ได้รับการตรวจสอบ
+* Final Regression Testing จะดำเนินการใน Final Sprint
+
+### Documentation
+
+* README อัปเดต
+* Project Plan อัปเดต
+* Change Log อัปเดต
+* Learning Log อัปเดต
+* Sprint Documentation อัปเดต
+
+---
+
+# 17. Future / Final Sprint Scope
+
+Features ต่อไปนี้ยังถือเป็นงานของ Final Sprint
+และยังไม่ถือว่า Completed ณ จุดสิ้นสุดของ Sprint 3:
+
+* Final Integration
+* Final QA
+* Regression Testing
+* Performance / Reliability Checking
+* GitHub Actions
+* CI/CD
+* AI Integration
+* Final Documentation
+* Final Presentation
+
+รายละเอียดจริงของ Final Sprint จะถูกบันทึก
+หลังจากทีมเริ่มดำเนินงานใน Sprint ดังกล่าว
+
+---
+
+# 18. Project Planning Summary
+
+```text
+SPRINT 1
+Application Foundation
+CLI + Core Logic + QA
+        │
+        ▼
+SPRINT 2
+Web Application Foundation
+Streamlit + RAWG + Steam + SQLite
+        │
+        ▼
+SPRINT 3
+Data Analysis & Advanced Features
+Statistics + Visualization + Filter + Sort + Comparison
+        │
+        ▼
+FINAL SPRINT
+Integration + Final QA + Documentation
+        │
+        ▼
+FINAL PROJECT
+```
+
+**Current Status:**
+
+```text
+Sprint 1       ✅ Completed
+Sprint 2       ✅ Completed
+Sprint 3       ✅ Completed
+Final Sprint   ⏳ Planned
+```

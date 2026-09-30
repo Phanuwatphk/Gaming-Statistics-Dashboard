@@ -5,42 +5,104 @@ All notable changes to the **Gaming Statistics Dashboard** project will be docum
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project follows Semantic Versioning.
 
 ---
-## [v0.3.0] - Sprint 3: Data Analysis & Visualization
+
+## [v0.3.0] - Sprint 3: Data Analysis, Visualization & Advanced Features
+
+**Period:** 25–29 September 2026  
+**Status:** Completed
+
+Sprint 3 focused on extending the Gaming Statistics Dashboard from a data presentation system into a system that can also process, analyze, visualize, filter, sort, and compare game data.
 
 ### Added
 
 - Added Data Cleaning and Data Preparation workflow for game data.
+- Added data normalization for RAWG game data.
+- Added handling for numeric, date, genre, platform, and optional game fields.
 - Added Exploratory Data Analysis (EDA) for game data.
-- Added descriptive statistical summaries for relevant game attributes.
-- Added Dashboard Statistics for summarizing game data.
-- Added Data Visualization for exploring rating, genre, platform, and other available attributes.
-- Added Data Comparison features for supported game groups.
-- Added Advanced Filtering and Advanced Sorting improvements.
-- Added Sprint 3 test coverage for data preparation, statistics, visualization, and integration.
-- Added Sprint 3 daily task allocation and contribution metrics.
+- Added descriptive statistical analysis for relevant game attributes.
+- Added summary statistics including count, mean, median, minimum, maximum, and standard deviation where applicable.
+- Added genre frequency and proportion analysis.
+- Added platform frequency and proportion analysis.
+- Added average rating analysis by genre.
+- Added release-year distribution analysis.
+- Added Metacritic score analysis.
+- Added Steam live player analysis.
+- Added Statistics Dashboard page.
+- Added Data Visualization for game statistics.
+- Added Genre Distribution visualization.
+- Added Platform Distribution visualization.
+- Added Rating by Genre visualization.
+- Added Release Year Distribution visualization.
+- Added Metacritic Score Distribution visualization.
+- Added Top Live Steam Players visualization.
+- Added Advanced Filtering for Genre, Platform, Minimum Rating, and Release Year.
+- Added Advanced Sorting for Rating, Release Date, and Game Name.
+- Added ascending and descending sorting options.
+- Added Game Comparison functionality.
+- Added comparison of supported game attributes such as Rating, Metacritic Score, and Steam Players.
+- Added empty-state handling for cases where no data matches the selected filters.
+- Added Sprint 3 statistical analysis test cases.
+- Added Sprint 3 data processing test cases.
+- Added Sprint 3 visualization and integration test coverage.
+- Added Sprint 3 daily task allocation and actual work results.
 
 ### Changed
 
-- Updated the Dashboard workflow to support analysis and visualization results.
-- Updated project documentation and roadmap for Sprint 3 completion.
-- Updated data exploration flow to support additional comparison and filtering features.
+- Updated the application workflow to include Data Processing and Analysis before displaying statistical results.
+- Updated the Dashboard workflow to support Statistics and Data Visualization.
+- Updated data processing to prepare RAWG and Steam data for analysis.
+- Updated game filtering to support additional filtering conditions.
+- Updated game sorting to support multiple fields and sorting directions.
+- Updated the Dashboard to support game comparison.
+- Updated the project structure by adding analysis-related components.
+- Updated the documentation to reflect Sprint 3 implementation and completed features.
+- Updated the project roadmap and Sprint documentation after Sprint 3 completion.
 
 ### Fixed
 
-- Improved handling of missing or incomplete data in analysis and visualization workflows.
-- Improved consistency checks between processed data and Dashboard outputs.
+- Improved handling of missing or incomplete game data during analysis.
+- Improved handling of non-numeric values before performing statistical calculations.
+- Improved consistency of processed data used by the Dashboard.
+- Improved handling of empty datasets after applying filters.
+- Improved handling of missing values during sorting and comparison.
+- Fixed data processing issues that could affect statistical calculations and visualization.
+- Fixed integration issues between processed data, analysis functions, and Dashboard components.
 
-## Planner / Coder / Debugger Roles
+### Testing
+
+Sprint 3 testing covered:
+
+- Data Processing
+- Data Cleaning
+- Data Normalization
+- Statistical Analysis
+- Dashboard Statistics
+- Data Visualization
+- Advanced Filtering
+- Advanced Sorting
+- Game Comparison
+- Empty-State Handling
+- Dashboard Integration
+- Regression Testing
+
+---
+
+## Planner / Coder / Debugger Roles — Sprint 3
 
 | สมาชิก | ชื่อเล่น | Role | หน้าที่ |
 |---|---|---|---|
-| นายเดโชชิต โตวินัส | ออม | Planner | Defined Sprint 3 scope, requirements, task allocation, Definition of Done, and Sprint 3 documentation. |
-| นายชิษณุพงศ์ ซู | คิม | Coder | Developed data preparation, EDA, statistics, visualization, and advanced features. |
-| นายภานุวัฒน์ ผองแก้ว | ฟลุ๊ค | Debugger | Tested data quality, statistical outputs, visualization, integration, edge cases, and verified fixes. |
+| นายเดโชชิต โตวินัส | ออม | Planner | Defined Sprint 3 scope, requirements, task allocation, Definition of Done, progress tracking, and Sprint 3 documentation. |
+| นายชิษณุพงศ์ ซู | คิม | Coder | Developed data preparation, data processing, analysis, statistics, visualization, filtering, sorting, comparison, and integration features. |
+| นายภานุวัฒน์ ผองแก้ว | ฟลุ๊ค | Debugger | Tested data quality, statistical outputs, visualization, filtering, sorting, comparison, integration, edge cases, and verified fixes. |
 
 ---
 
 ## [v0.2.0] - Sprint 2: Web Application, API & Database
+
+**Period:** 20–24 September 2026  
+**Status:** Completed
+
+Sprint 2 transformed the project from a CLI Application into a Web Application and introduced external APIs and database storage.
 
 ### Added
 
@@ -81,7 +143,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Fixed handling of missing game information.
 - Fixed large game data display by adding pagination.
 
-## Planner / Coder / Debugger Roles
+## Planner / Coder / Debugger Roles — Sprint 2
 
 | สมาชิก | ชื่อเล่น | Role | หน้าที่ |
 |---|---|---|---|
@@ -92,6 +154,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ---
 
 ## [v0.1.0] - Sprint 1: CLI Foundation
+
+**Status:** Completed
+
+Sprint 1 established the initial application foundation using a Command Line Interface (CLI) and a local sample dataset.
 
 ### Added
 
@@ -112,7 +178,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Updated project plan and Sprint 1 documentation.
 - Updated Learning Log and Change Log for Sprint 1.
 
-## Planner / Coder / Debugger Roles
+## Planner / Coder / Debugger Roles — Sprint 1
 
 | สมาชิก | ชื่อเล่น | Role | หน้าที่ |
 |---|---|---|---|
