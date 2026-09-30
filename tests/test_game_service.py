@@ -158,7 +158,11 @@ def test_service_imports_and_returns_a_later_catalog_page_in_api_order(tmp_path)
 
 
 class FakeSteamTopClient:
+    def __init__(self):
+        self.calls = 0
+
     def get_most_played_games(self, limit: int):
+        self.calls += 1
         assert limit == 100
         return [
             {
@@ -214,3 +218,15 @@ def test_service_saves_rawg_discoveries_before_home_reads_them(tmp_path):
     assert result.saved == 1
     assert service.get_popular_games()[0]["genres"] == ["Adventure"]
     assert service.get_popular_games()[0]["catalog_updated_at"].endswith("+07:00")
+
+
+def test_service_reuses_a_partial_live_snapshot_within_the_refresh_interval(tmp_path):
+    steam_client = FakeSteamTopClient()
+    service = GameService(FakeRawgClient(), GameDatabase(tmp_path / "games.db"), steam_client=steam_client)
+
+    first = service.refresh_live_top_games()
+    second = service.refresh_live_top_games()
+
+    assert first.saved == 1
+    assert second.skipped is True
+    assert steam_client.calls == 1

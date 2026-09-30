@@ -40,6 +40,7 @@ def render_dashboard(game_service: GameService) -> None:
     apply_dashboard_styles()
     _initialize_navigation_state()
     should_scroll_to_top = st.session_state.pop("scroll_to_top", False)
+    scroll_request_id = st.session_state.pop("scroll_request_id", 0)
     _render_sidebar()
 
     page = st.session_state.dashboard_page
@@ -56,12 +57,15 @@ def render_dashboard(game_service: GameService) -> None:
     elif page == "players":
         _render_players_page(game_service)
     elif page == "statistics":
-        render_statistics_page(game_service.get_games())
+        render_statistics_page(
+            game_service.get_games(),
+            live_games=game_service.get_live_top_games(),
+        )
     elif page == "detail":
         _render_detail_page(game_service)
 
     if should_scroll_to_top:
-        _render_scroll_reset()
+        _render_scroll_reset(scroll_request_id)
 
 
 def _initialize_navigation_state() -> None:
@@ -522,27 +526,38 @@ def _go_to(page: str) -> None:
     st.rerun()
 
 def _scroll_to_top() -> None:
-    """Schedule a top-of-page viewport reset for the following Streamlit run."""
+    """Schedule a unique top-of-page viewport reset for the following run."""
     st.session_state.scroll_to_top = True
+    st.session_state.scroll_request_id = st.session_state.get("scroll_request_id", 0) + 1
 
-def _render_scroll_reset() -> None:
+def _render_scroll_reset(scroll_request_id: int) -> None:
     """Reset the main Streamlit viewport after pagination/navigation."""
     st.html(
         """
         <script>
+        // Unique request token: __SCROLL_REQUEST_ID__.  A changing script body makes Streamlit remount it on every page change.
         (() => {
             const scrollToTop = () => {
                 try {
-                    const main = document.querySelector(
-                        'section[data-testid="stMain"]'
-                    );
+                    const main = document.querySelector("section[data-testid=stMain]");
+                    const containers = new Set([
+                        document.scrollingElement,
+                        document.documentElement,
+                        document.body,
+                        ...document.querySelectorAll(
+                            "section[data-testid=stMain], [data-testid=stAppViewContainer], .stApp"
+                        ),
+                    ]);
 
-                    if (main) {
-                        main.scrollTo({
-                            top: 0,
-                            left: 0,
-                            behavior: "instant",
-                        });
+                    for (let element = main; element; element = element.parentElement) {
+                        containers.add(element);
+                    }
+
+                    for (const container of containers) {
+                        if (container) {
+                            container.scrollTop = 0;
+                            container.scrollLeft = 0;
+                        }
                     }
 
                     const activeElement = document.activeElement;
@@ -553,9 +568,9 @@ def _render_scroll_reset() -> None:
                         activeElement.blur();
                     }
 
-                    window.scrollTo(0, 0);
+                    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
                 } catch (_) {
-                    window.scrollTo(0, 0);
+                    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
                 }
             };
 
@@ -565,10 +580,12 @@ def _render_scroll_reset() -> None:
                     setTimeout(scrollToTop, 50);
                     setTimeout(scrollToTop, 150);
                     setTimeout(scrollToTop, 300);
+                    setTimeout(scrollToTop, 700);
+                    setTimeout(scrollToTop, 1200);
                 });
             });
         })();
         </script>
-        """,
+        """.replace("__SCROLL_REQUEST_ID__", str(scroll_request_id)),
         unsafe_allow_javascript=True,
     )
