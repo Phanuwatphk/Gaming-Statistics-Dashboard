@@ -255,7 +255,7 @@ Gaming-Statistics-Dashboard/
 | SQLite | Data Storage |
 | RAWG API | Game Data Source |
 | Steam API | Player Data Source |
-| Data Visualization Library | สร้าง Chart และ Visualization ตาม Library ที่ใช้จริงในโปรเจกต์ |
+| Altair | สร้าง Interactive Bar, Line และ Histogram Charts |
 | pytest | Automated Testing |
 | Git + GitHub | Version Control, Collaboration และ Pull Request |
 
@@ -626,20 +626,20 @@ Test Cases ต่อไปนี้เป็นรายการที่วา
 
 | Test ID | Result | Issue / Notes |
 |---|---|---|
-| S3-TC-01 | ⏳ Not Tested | |
-| S3-TC-02 | ⏳ Not Tested | |
-| S3-TC-03 | ⏳ Not Tested | |
-| S3-TC-04 | ⏳ Not Tested | |
-| S3-TC-05 | ⏳ Not Tested | |
-| S3-TC-06 | ⏳ Not Tested | |
-| S3-TC-07 | ⏳ Not Tested | |
-| S3-TC-08 | ⏳ Not Tested | |
-| S3-TC-09 | ⏳ Not Tested | |
-| S3-TC-10 | ⏳ Not Tested | |
-| S3-TC-11 | ⏳ Not Tested | |
-| S3-TC-12 | ⏳ Not Tested | |
-| S3-TC-13 | ⏳ Not Tested | |
-| S3-TC-14 | ⏳ Not Tested | |
+| S3-TC-01 | ✅ Pass | test_process_game_normalizes_nested_rawg_fields |
+| S3-TC-02 | ✅ Pass | Missing optional values and empty statistics are handled safely |
+| S3-TC-03 | ✅ Pass | test_database_upsert_prevents_duplicate_game_ids |
+| S3-TC-04 | ✅ Pass | Numeric coercion is covered by analysis and processing tests |
+| S3-TC-05 | ✅ Pass | test_descriptive_statistics |
+| S3-TC-06 | ✅ Pass | Min, max and sample standard deviation are asserted |
+| S3-TC-07 | ✅ Pass | Genre and platform frequency plus occurrence proportion are asserted |
+| S3-TC-08 | ✅ Pass | test_statistics_page_handles_an_empty_library |
+| S3-TC-09 | ✅ Pass | Statistics page renders all six visualization sections without an exception |
+| S3-TC-10 | ✅ Pass | Multi-condition genre/platform/rating/year filter test |
+| S3-TC-11 | ✅ Pass | Rating and release-date sort tests, including missing values |
+| S3-TC-12 | ✅ Pass | test_comparison_dataframe_uses_the_selected_games_values |
+| S3-TC-13 | ✅ Pass | AppTest renders Statistics with charts and comparison table |
+| S3-TC-14 | ✅ Pass | Empty-library chart path shows an informative state |
 
 ---
 

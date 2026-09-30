@@ -21,12 +21,9 @@ else:  # `streamlit run src/app.py` executes this module as a script.
     from database.database import DatabaseError, GameDatabase
     from services.game_service import GameService
 
-# import os
-# import streamlit as st
-import threading
-
-st.write("PID:", os.getpid())
-st.write("Thread:", threading.get_ident())
+# import threading
+# st.write("PID:", os.getpid())
+# st.write("Thread:", threading.get_ident())
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_DATABASE_PATH = PROJECT_ROOT / "data" / "gaming_statistics.db"
@@ -70,7 +67,8 @@ def main() -> None:
     st.set_page_config(page_title="Gaming Statistics", layout="wide")
     try:
         game_service = build_game_service()
-        _refresh_dashboard_data(game_service, _live_refresh_interval())
+        if os.getenv("GAMING_DASHBOARD_SKIP_REFRESH") != "1":
+            _refresh_dashboard_data(game_service, _live_refresh_interval())
         if error := st.session_state.get("home_refresh_error"):
             st.warning(f"Showing the last saved Steam ranking: {error}")
         if error := st.session_state.get("catalog_refresh_error"):
