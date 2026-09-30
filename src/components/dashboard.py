@@ -7,19 +7,20 @@ from html import escape
 from typing import Any, Callable
 
 import streamlit as st
-
 if __package__ and __package__.startswith("src."):
     from src.api.rawg_api import RawgApiError
     from src.database.database import DatabaseError
     from src.services.game_service import GameService
     from src.utils.time_utils import format_thailand_timestamp
     from src.components.styles import apply_dashboard_styles
+    from src.components.statistics_page import render_statistics_page
 else:  # Supports imports when Streamlit runs src/app.py as a script.
     from api.rawg_api import RawgApiError
     from database.database import DatabaseError
     from services.game_service import GameService
     from utils.time_utils import format_thailand_timestamp
     from components.styles import apply_dashboard_styles
+    from components.statistics_page import render_statistics_page
 
 
 NAVIGATION = (
@@ -29,6 +30,7 @@ NAVIGATION = (
     ("genres", "Genres"),
     ("top_rated", "Top Rated"),
     ("players", "Live Players"),
+    ("statistics", "Statistics"),
 )
 GAMES_PER_PAGE = 50
 
@@ -53,6 +55,8 @@ def render_dashboard(game_service: GameService) -> None:
         _render_top_rated_page(game_service)
     elif page == "players":
         _render_players_page(game_service)
+    elif page == "statistics":
+        render_statistics_page(game_service.get_games())
     elif page == "detail":
         _render_detail_page(game_service)
 
@@ -114,6 +118,19 @@ def _render_games_page(game_service: GameService) -> None:
         return
 
     games = _render_collection_filters(games)
+    sort_by = st.selectbox(
+        "Sort by",
+        ["Rating", "Release Date", "Name"],
+        key="library-sort-by",
+    )
+
+    sort_order = st.selectbox(
+        "Order",
+        ["Descending", "Ascending"],
+        key="library-sort-order",
+    )
+
+    games = _sort_games(games, sort_by, descending=sort_order == "Descending")
     if not games:
         _render_empty_state("No matching games", "Try broadening the genre, platform, or rating filters.")
         return
@@ -126,33 +143,61 @@ def _render_collection_filters(games: list[dict[str, Any]]) -> list[dict[str, An
     """Render collection filters and return games matching every selected value."""
     genre_options = sorted({genre for game in games for genre in game["genres"]})
     platform_options = sorted({platform for game in games for platform in game["platforms"]})
+    release_years = sorted(year for game in games if (year := _release_year(game)) is not None)
     ratings = [game["rating"] for game in games if game["rating"] is not None]
 
-    genre_column, platform_column, rating_column = st.columns(3)
+    genre_column, platform_column, rating_column, year_column = st.columns(4)
     with genre_column:
         selected_genres = st.multiselect("Genre", genre_options, placeholder="All genres")
     with platform_column:
         selected_platforms = st.multiselect("Platform", platform_options, placeholder="All platforms")
     with rating_column:
-        minimum_rating = st.number_input(
-            "Minimum rating",
-            min_value=0.0,
-            max_value=5.0,
-            value=0.0,
-            step=0.1,
-            disabled=not ratings,
+        minimum_rating = st.number_input("Minimum rating", min_value=0.0, max_value=5.0, value=0.0, step=0.1, disabled=not ratings)
+    with year_column:
+        selected_years = st.slider(
+            "Release year",
+            min_value=release_years[0] if release_years else 0,
+            max_value=release_years[-1] if release_years else 0,
+            value=(release_years[0], release_years[-1]) if release_years else (0, 0),
+            disabled=not release_years,
         )
 
+    return _filter_games(games, selected_genres, selected_platforms, minimum_rating, selected_years if release_years else None)
+
+
+def _filter_games(
+    games: list[dict[str, Any]],
+    selected_genres: list[str] | tuple[str, ...] = (),
+    selected_platforms: list[str] | tuple[str, ...] = (),
+    minimum_rating: float = 0.0,
+    release_year_range: tuple[int, int] | None = None,
+) -> list[dict[str, Any]]:
+    """Return games that satisfy all collection-filter conditions."""
     return [
-        game
-        for game in games
+        game for game in games
         if (not selected_genres or set(selected_genres).intersection(game["genres"]))
         and (not selected_platforms or set(selected_platforms).intersection(game["platforms"]))
-        and (
-            minimum_rating == 0
-            or (game["rating"] is not None and game["rating"] >= minimum_rating)
-        )
+        and (minimum_rating == 0 or (game["rating"] is not None and game["rating"] >= minimum_rating))
+        and (release_year_range is None or (_release_year(game) is not None and release_year_range[0] <= _release_year(game) <= release_year_range[1]))
     ]
+
+
+def _release_year(game: dict[str, Any]) -> int | None:
+    released = game.get("released") or ""
+    try:
+        return int(released[:4])
+    except (TypeError, ValueError):
+        return None
+
+
+def _sort_games(games: list[dict[str, Any]], sort_by: str, descending: bool = True) -> list[dict[str, Any]]:
+    """Sort the library consistently, keeping missing values at the end."""
+    if sort_by == "Name":
+        return sorted(games, key=lambda game: game["name"].lower(), reverse=descending)
+    field = "rating" if sort_by == "Rating" else "released"
+    available = [game for game in games if game[field] is not None]
+    missing = [game for game in games if game[field] is None]
+    return sorted(available, key=lambda game: game[field], reverse=descending) + missing
 
 
 def _render_search_page(game_service: GameService) -> None:
@@ -252,7 +297,6 @@ def _render_players_page(game_service: GameService) -> None:
     if latest_update:
         st.caption(f"Last updated: {_display_timestamp(latest_update)}")
     _render_paginated_game_grid(games, page_key="players", key_prefix="players", show_rank=True)
-
 
 def _render_detail_page(game_service: GameService) -> None:
     game_id = st.session_state.selected_game_id
