@@ -9,13 +9,13 @@ from typing import Any, Callable
 from threading import Lock
 
 if __package__ and __package__.startswith("src."):
-    from src.api.rawg_api import RAWG_MAX_PAGE_SIZE, RawgApiClient
+    from src.api.rawg_api import RAWG_MAX_PAGE_SIZE, RawgApiClient, RawgApiError
     from src.api.steam_api import SteamApiClient, SteamApiError, SteamConnectionError
     from src.database.database import GameDatabase
     from src.utils.data_processing import process_games
     from src.utils.time_utils import thailand_now
 else:  # Supports imports when Streamlit runs src/app.py as a script.
-    from api.rawg_api import RAWG_MAX_PAGE_SIZE, RawgApiClient
+    from api.rawg_api import RAWG_MAX_PAGE_SIZE, RawgApiClient, RawgApiError
     from api.steam_api import SteamApiClient, SteamApiError, SteamConnectionError
     from database.database import GameDatabase
     from utils.data_processing import process_games
@@ -30,6 +30,7 @@ LIVE_TOP_GAMES_LIMIT = PAGE_SIZE
 _LIVE_TOP_REFRESH_LOCK = Lock()
 _CATALOG_REFRESH_LOCK = Lock()
 _PLAYERS_REFRESH_LOCK = Lock()
+_RAWG_IMPORT_LOCK = Lock()
 
 @dataclass(frozen=True)
 class SyncResult:
@@ -82,21 +83,75 @@ class GameService:
     def sync_games(self, page_size: int = PAGE_SIZE) -> SyncResult:
         """Fetch RAWG data, normalize it, and save it to SQLite."""
         raw_games = self.api_client.fetch_games(page_size)
-        games = process_games(raw_games)
-        saved = self.database.insert_games(games, updated_at=thailand_now().isoformat())
+        games = self.save_rawg_games(raw_games)
+        saved = len(games)
         return SyncResult(fetched=len(raw_games), saved=saved)
 
     def get_games(self) -> list[dict[str, Any]]:
         """Retrieve all games currently saved in SQLite."""
         return self.database.get_games()
 
+    def get_game_details(self, game_id: int, *, fetch_developers: bool = True) -> dict[str, Any] | None:
+        """Load missing developer data only for the selected RAWG game.
+
+        Successful empty responses are cached as well. Failed requests leave
+        the cache unset, so a later visit can try again.
+        """
+        with _RAWG_IMPORT_LOCK:
+            games = self.database.get_games_by_ids([game_id])
+            if not games:
+                return None
+            game = games[0]
+            if (
+                fetch_developers and game_id > 0
+                and not game["developers"] and not game["developers_updated_at"]
+            ):
+                details = process_games([self.api_client.fetch_game_details(game_id)])
+                if not details or details[0]["game_id"] != game_id:
+                    raise RawgApiError("RAWG returned invalid game details")
+                updated_at = thailand_now().isoformat()
+                self.database.save_developers(game_id, details[0]["developers"], updated_at)
+                game["developers"] = details[0]["developers"]
+                game["developers_updated_at"] = updated_at
+            return game
+
+    def save_rawg_games(
+        self, raw_games: list[dict[str, Any]], *,
+        catalog_start_rank: int | None = None, replace_snapshot: bool = False,
+    ) -> list[dict[str, Any]]:
+        """Normalize and save list data without extra developer requests.
+
+        Preserve cached developer data; get_game_details loads missing names
+        only when someone opens the selected game.
+        """
+        with _RAWG_IMPORT_LOCK:
+            games = list({game["game_id"]: game for game in process_games(raw_games)}.values())
+            cached = {game["game_id"]: game for game in self.database.get_games_by_ids(game["game_id"] for game in games)}
+            raw_by_id = {game["id"]: game for game in raw_games if isinstance(game, dict) and isinstance(game.get("id"), int)}
+            updated_at = thailand_now().isoformat()
+            for game in games:
+                previous = cached.get(game["game_id"])
+                if "developers" in raw_by_id.get(game["game_id"], {}):
+                    game["developers_updated_at"] = updated_at
+                elif previous and previous["developers_updated_at"]:
+                    game["developers"] = previous["developers"]
+                    game["developers_updated_at"] = previous["developers_updated_at"]
+            if catalog_start_rank is None:
+                self.database.insert_games(games, updated_at=updated_at)
+            else:
+                self.database.save_catalog_games(
+                    games, updated_at=updated_at, start_rank=catalog_start_rank,
+                    replace_snapshot=replace_snapshot,
+                )
+            return games
+
     def get_live_top_games(self) -> list[dict[str, Any]]:
         """Retrieve the current Home-page ranking from SQLite."""
         return self.database.get_live_top_games()
 
-    def get_popular_games(self) -> list[dict[str, Any]]:
+    def get_popular_games(self, limit: int | None = None) -> list[dict[str, Any]]:
         """Retrieve locally stored popular RAWG games for the Home page."""
-        return self.database.get_popular_games()
+        return self.database.get_popular_games(limit=limit)
 
     def search_games(self, search_term: str) -> list[dict[str, Any]]:
         """Find games from SQLite; a blank search deliberately returns no results."""
@@ -120,8 +175,7 @@ class GameService:
             display_page=1,
             page_size=page_size,
         )
-        games = process_games(raw_games)
-        self.database.insert_games(games, updated_at=thailand_now().isoformat())
+        self.save_rawg_games(raw_games)
         return self.database.search_games(search_term)
 
     def import_search_page(
@@ -137,8 +191,7 @@ class GameService:
             display_page=page,
             page_size=page_size,
         )
-        games = process_games(raw_games)
-        self.database.insert_games(games, updated_at=thailand_now().isoformat())
+        games = self.save_rawg_games(raw_games)
         return self.database.get_games_by_ids(game["game_id"] for game in games)
 
     def refresh_current_players(
@@ -178,9 +231,11 @@ class GameService:
             failed = 0
             readings: list[tuple[int, int | None]] = []
 
-            for game in self.database.get_games():
-                if game_ids is not None and game["game_id"] not in game_ids:
-                    continue
+            games = (
+                self.database.get_games_by_ids(sorted(game_ids))
+                if game_ids is not None else self.database.get_games()
+            )
+            for game in games:
 
                 steam_app_id = game["steam_app_id"]
 
@@ -237,7 +292,7 @@ class GameService:
 
     def refresh_catalog(
         self,
-        minimum_interval: timedelta = timedelta(minutes=15),
+        minimum_interval: timedelta = timedelta(hours=24),
         force: bool = False,
     ) -> CatalogRefreshResult:
         """
@@ -267,13 +322,8 @@ class GameService:
                 page_size=PAGE_SIZE,
             )
 
-            games = process_games(raw_games)
-
-            saved = self.database.save_catalog_games(
-                games,
-                updated_at=now.isoformat(),
-                replace_snapshot=True,
-            )
+            games = self.save_rawg_games(raw_games, catalog_start_rank=1, replace_snapshot=True)
+            saved = len(games)
 
             self.database.set_metadata(
                 "catalog_last_refresh",
@@ -293,11 +343,8 @@ class GameService:
             display_page=page,
             page_size=page_size,
         )
-        games = process_games(raw_games)
-        self.database.save_catalog_games(
-            games,
-            updated_at=thailand_now().isoformat(),
-            start_rank=(page - 1) * page_size + 1,
+        games = self.save_rawg_games(
+            raw_games, catalog_start_rank=(page - 1) * page_size + 1,
             replace_snapshot=page == 1,
         )
         return self.database.get_games_by_ids(game["game_id"] for game in games)

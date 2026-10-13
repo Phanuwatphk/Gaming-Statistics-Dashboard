@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections import defaultdict
 from html import escape
 from typing import Any, Callable
+from urllib.parse import urlencode
 
 import streamlit as st
 if __package__ and __package__.startswith("src."):
@@ -40,7 +41,8 @@ def render_dashboard(game_service: GameService) -> None:
     apply_dashboard_styles()
     _initialize_navigation_state()
     should_scroll_to_top = st.session_state.pop("scroll_to_top", False)
-    scroll_request_id = st.session_state.pop("scroll_request_id", 0)
+    # Keep the counter across runs so consecutive resets have different scripts.
+    scroll_request_id = st.session_state.get("scroll_request_id", 0)
     _render_sidebar()
 
     page = st.session_state.dashboard_page
@@ -57,6 +59,7 @@ def render_dashboard(game_service: GameService) -> None:
     elif page == "players":
         _render_players_page(game_service)
     elif page == "statistics":
+        _page_heading("Statistics", "Explore descriptive statistics, distributions, and game comparisons.")
         render_statistics_page(
             game_service.get_games(),
             live_games=game_service.get_live_top_games(),
@@ -71,12 +74,22 @@ def render_dashboard(game_service: GameService) -> None:
 def _initialize_navigation_state() -> None:
     st.session_state.setdefault("dashboard_page", "home")
     st.session_state.setdefault("selected_game_id", None)
+    requested_genre = st.query_params.pop("genre", None)
+    if requested_genre:
+        st.session_state.dashboard_page = "genres"
+        st.session_state.selected_genre = requested_genre
+        st.session_state[f"pagination-genre-{requested_genre}"] = 1
+        _scroll_to_top()
 
 
 def _render_sidebar() -> None:
     with st.sidebar:
-        st.markdown('<div class="sidebar-brand">Gaming Statistics</div>', unsafe_allow_html=True)
-        st.markdown('<div class="sidebar-label">Game discovery dashboard</div>', unsafe_allow_html=True)
+        st.markdown(
+            '<div class="sidebar-brand">Gaming Statistics</div>'
+            '<div class="sidebar-label">Game discovery dashboard</div>',
+            unsafe_allow_html=True,
+        )
+        st.caption("Game data: [RAWG](https://rawg.io) · Players: [Steam](https://store.steampowered.com/charts/mostplayed)")
         st.divider()
 
         for page, label in NAVIGATION:
@@ -92,7 +105,7 @@ def _render_sidebar() -> None:
 def _render_home(game_service: GameService) -> None:
     games = st.session_state.get("home-page-games")
     if games is None:
-        games = game_service.get_popular_games()[:GAMES_PER_PAGE]
+        games = game_service.get_popular_games(limit=GAMES_PER_PAGE)
     live_games = game_service.get_live_top_games()
     _page_heading("Popular Games", "Popular and widely played games saved from the latest RAWG discovery update.")
 
@@ -121,25 +134,24 @@ def _render_games_page(game_service: GameService) -> None:
         _render_empty_state("Your library is empty", "Use Search to add games and build your collection.")
         return
 
-    games = _render_collection_filters(games)
-    sort_by = st.selectbox(
-        "Sort by",
-        ["Rating", "Release Date", "Name"],
-        key="library-sort-by",
-    )
-
-    sort_order = st.selectbox(
-        "Order",
-        ["Descending", "Ascending"],
-        key="library-sort-order",
-    )
+    with st.container(border=True, key="library-filters"):
+        games = _render_collection_filters(games)
+        sort_column, order_column = st.columns(2)
+        with sort_column:
+            sort_by = st.selectbox(
+                "Sort by", ["Rating", "Release Date", "Name"], key="library-sort-by",
+            )
+        with order_column:
+            sort_order = st.selectbox(
+                "Order", ["Descending", "Ascending"], key="library-sort-order",
+            )
 
     games = _sort_games(games, sort_by, descending=sort_order == "Descending")
     if not games:
         _render_empty_state("No matching games", "Try broadening the genre, platform, or rating filters.")
         return
 
-    st.caption("Sorted by the most recent database update.")
+    st.caption(f"{len(games):,} games · Sorted by {sort_by.lower()} ({sort_order.lower()})")
     _render_paginated_game_grid(games, page_key="games", key_prefix="games")
 
 
@@ -158,13 +170,14 @@ def _render_collection_filters(games: list[dict[str, Any]]) -> list[dict[str, An
     with rating_column:
         minimum_rating = st.number_input("Minimum rating", min_value=0.0, max_value=5.0, value=0.0, step=0.1, disabled=not ratings)
     with year_column:
-        selected_years = st.slider(
-            "Release year",
-            min_value=release_years[0] if release_years else 0,
-            max_value=release_years[-1] if release_years else 0,
-            value=(release_years[0], release_years[-1]) if release_years else (0, 0),
-            disabled=not release_years,
-        )
+        if release_years and release_years[0] != release_years[-1]:
+            selected_years = st.slider(
+                "Release year", min_value=release_years[0], max_value=release_years[-1],
+                value=(release_years[0], release_years[-1]),
+            )
+        else:
+            st.text_input("Release year", value=str(release_years[0]) if release_years else "Unavailable", disabled=True)
+            selected_years = (release_years[0], release_years[0]) if release_years else None
 
     return _filter_games(games, selected_genres, selected_platforms, minimum_rating, selected_years if release_years else None)
 
@@ -267,8 +280,14 @@ def _render_genres_page(game_service: GameService) -> None:
     if not grouped_games:
         _render_empty_state("No genre data yet", "Add games through Search to start exploring genres.")
         return
-    for genre in sorted(grouped_games):
-        with st.expander(f"{genre} · {len(grouped_games[genre])} game(s)"):
+    selected_genre = st.session_state.get("selected_genre")
+    if selected_genre and selected_genre not in grouped_games:
+        st.info(f'No saved games found for “{selected_genre}”. Browse the genres below.')
+    for genre in sorted(grouped_games, key=lambda genre: (genre != selected_genre, genre)):
+        with st.expander(
+            f"{genre} · {len(grouped_games[genre])} game(s)",
+            expanded=genre == selected_genre,
+        ):
             _render_paginated_game_grid(
                 grouped_games[genre],
                 page_key=f"genre-{genre}",
@@ -304,7 +323,11 @@ def _render_players_page(game_service: GameService) -> None:
 
 def _render_detail_page(game_service: GameService) -> None:
     game_id = st.session_state.selected_game_id
-    game = next((item for item in game_service.get_games() if item["game_id"] == game_id), None)
+    try:
+        game = game_service.get_game_details(game_id)
+    except RawgApiError as error:
+        st.warning(f"Developer information could not be loaded: {error}")
+        game = game_service.get_game_details(game_id, fetch_developers=False)
     if game is None:
         _render_empty_state("Game not found", "This game may have been removed from the library.")
         if st.button("Back to Game Library"):
@@ -316,31 +339,41 @@ def _render_detail_page(game_service: GameService) -> None:
     _page_heading(game["name"], "Everything you need to know at a glance.")
 
     if game["image"]:
-        st.image(game["image"], width="stretch")
+        st.markdown(
+            f'<img class="detail-cover" src="{escape(str(game["image"]), quote=True)}" '
+            f'alt="Cover for {escape(game["name"], quote=True)}">',
+            unsafe_allow_html=True,
+        )
 
     st.markdown("### Game Information")
     fields = (
-        ("Rating", game["rating"] if game["rating"] is not None else "–"),
+        ("Rating", f'{game["rating"]:.2f} / 5' if game["rating"] is not None else "N/A"),
         ("Steam players now", f'{game["current_players"]:,}' if game["current_players"] is not None else "N/A"),
         ("Release date", game["released"] or "–"),
-        ("Platforms", ", ".join(game["platforms"]) or "–"),
         ("Metacritic", game["metacritic"] if game["metacritic"] is not None else "–"),
     )
-    columns = st.columns(len(fields))
-    for column, (label, value) in zip(columns, fields):
-        with column:
-            st.markdown(
-                f'<div class="detail-panel"><div class="detail-label">{escape(str(label))}</div>'
-                f'<div class="detail-value">{escape(str(value))}</div></div>',
-                unsafe_allow_html=True,
-            )
-
-    st.markdown("### Genres")
-    if game["genres"]:
-        tags = " ".join(f'<span class="tag">{escape(genre)}</span>' for genre in game["genres"])
-        st.markdown(tags, unsafe_allow_html=True)
-    else:
-        st.caption("No genre data available.")
+    stat_cards = "".join(
+        f'<div class="detail-panel"><div class="detail-label">{escape(label)}</div>'
+        f'<div class="detail-value">{escape(str(value))}</div></div>'
+        for label, value in fields
+    )
+    platforms = "".join(f'<span class="platform-tag">{escape(platform)}</span>' for platform in game["platforms"])
+    genres = "".join(_genre_link(genre) for genre in game["genres"])
+    developers = "".join(
+        f'<span class="platform-tag">{escape(developer)}</span>'
+        for developer in game.get("developers", [])
+    )
+    st.markdown(
+        f'<div class="detail-stats">{stat_cards}</div>'
+        '<div class="detail-taxonomy">'
+        '<section class="detail-section"><h3>Platforms</h3><div class="detail-tags">'
+        f'{platforms or "<span class=detail-empty>No platform data available.</span>"}</div></section>'
+        '<section class="detail-section"><h3>Genres</h3><div class="detail-tags">'
+        f'{genres or "<span class=detail-empty>No genre data available.</span>"}</div></section>'
+        '<section class="detail-section detail-developers"><h3>Developers</h3><div class="detail-tags">'
+        f'{developers or "<span class=detail-empty>No developer data available.</span>"}</div></section></div>',
+        unsafe_allow_html=True,
+    )
 
 
 def _render_game_grid(
@@ -432,13 +465,16 @@ def _render_remote_paginated_game_grid(
     requested_page = current_page - 1 if previous else current_page + 1 if next_page else None
     if requested_page is None or requested_page == current_page:
         return
-    cards_container.empty()
     try:
         with st.spinner("Loading games..."):
             page_games = fetch_page(requested_page)
     except (RawgApiError, DatabaseError, ValueError) as error:
         st.error(str(error))
         return
+    if not page_games:
+        st.info("No more games available.")
+        return
+    cards_container.empty()
     st.session_state[state_key] = requested_page
     st.session_state[f"{page_key}-page-games"] = page_games
     if page_key == "search-results":
@@ -467,16 +503,12 @@ def _render_top_player_stat(total_players: int, latest_update: str) -> None:
 
 def _render_game_card(game: dict[str, Any], key_prefix: str, rank: int | None = None) -> None:
     if game["image"]:
-        st.markdown(
-            f'<img class="game-cover" src="{escape(str(game["image"]), quote=True)}" '
-            f'alt="Cover for {escape(str(game["name"]), quote=True)}">',
-            unsafe_allow_html=True,
+        cover = (
+            f'<img class="game-cover" loading="lazy" src="{escape(str(game["image"]), quote=True)}" '
+            f'alt="Cover for {escape(str(game["name"]), quote=True)}">'
         )
     else:
-        st.markdown(
-            '<div class="game-cover game-cover--empty">No cover image available</div>',
-            unsafe_allow_html=True,
-        )
+        cover = '<div class="game-cover game-cover--empty">No cover image available</div>'
 
     rank_text = f"#{rank} · " if rank is not None else ""
     rating = f"Rating {game['rating']:.1f}" if game["rating"] is not None else ""
@@ -486,11 +518,11 @@ def _render_game_card(game: dict[str, Any], key_prefix: str, rank: int | None = 
         if game["current_players"] is not None
         else "Player count unavailable"
     )
-    tags = "".join(f'<span class="tag">{escape(genre)}</span>' for genre in game["genres"][:2]) or '<span class="tag">Uncategorized</span>'
+    tags = "".join(_genre_link(genre) for genre in game["genres"][:2]) or '<span class="tag tag--muted">Uncategorized</span>'
     st.markdown(
-        f'<div class="game-card"><div class="game-name">{escape(game["name"])}</div>'
+        f'<div class="game-tile">{cover}<div class="game-card"><div class="game-name" title="{escape(game["name"], quote=True)}">{escape(game["name"])}</div>'
         f'<div class="game-meta">{summary}</div>'
-        f'<div class="game-meta">{players}</div><div class="game-tags">{tags}</div></div>',
+        f'<div class="game-meta">{players}</div><div class="game-tags">{tags}</div></div></div>',
         unsafe_allow_html=True,
     )
     if st.button("View Details", key=f"detail-{key_prefix}-{game['game_id']}", width="stretch"):
@@ -505,10 +537,19 @@ def _render_empty_state(title: str, message: str) -> None:
     )
 
 
+def _genre_link(genre: str) -> str:
+    """Link a genre chip to the matching section of the Genres page."""
+    href = escape(f"?{urlencode({'genre': genre})}", quote=True)
+    return f'<a class="tag genre-link" href="{href}" target="_self">{escape(genre)}</a>'
+
+
 def _page_heading(title: str, subtitle: str) -> None:
-    st.markdown('<div class="page-kicker">Gaming Statistics</div>', unsafe_allow_html=True)
-    st.markdown(f'<div class="page-title">{escape(title)}</div>', unsafe_allow_html=True)
-    st.markdown(f'<div class="page-subtitle">{escape(subtitle)}</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<header class="page-heading"><div class="page-kicker">Gaming Statistics</div>'
+        f'<h1 class="page-title">{escape(title)}</h1>'
+        f'<p class="page-subtitle">{escape(subtitle)}</p></header>',
+        unsafe_allow_html=True,
+    )
 
 
 def _sort_by_rating(games: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -531,7 +572,7 @@ def _scroll_to_top() -> None:
     st.session_state.scroll_request_id = st.session_state.get("scroll_request_id", 0) + 1
 
 def _render_scroll_reset(scroll_request_id: int) -> None:
-    """Reset the main Streamlit viewport after pagination/navigation."""
+    """Reset the viewport once when the navigation script mounts in the DOM."""
     st.html(
         """
         <script>
@@ -574,16 +615,7 @@ def _render_scroll_reset(scroll_request_id: int) -> None:
                 }
             };
 
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    scrollToTop();
-                    setTimeout(scrollToTop, 50);
-                    setTimeout(scrollToTop, 150);
-                    setTimeout(scrollToTop, 300);
-                    setTimeout(scrollToTop, 700);
-                    setTimeout(scrollToTop, 1200);
-                });
-            });
+            scrollToTop();
         })();
         </script>
         """.replace("__SCROLL_REQUEST_ID__", str(scroll_request_id)),

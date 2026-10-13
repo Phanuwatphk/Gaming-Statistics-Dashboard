@@ -993,156 +993,42 @@ Debugger ต้องเข้าใจ Requirements เพื่อสามา
 
 ---
 
-# 🚀 Final Sprint — Integration, Testing & Finalization
+# Final Sprint — Integration, Reliability and Delivery
 
-**Period:** TBD
-**Status:** ⏳ Planned
+**ช่วงตามแผน:** 2–6 October 2026
+**รอบตรวจส่งมอบ:** 13 October 2026
 
-## 1. Sprint Overview
+## สิ่งที่ตรวจและปรับปรุง
 
-Final Sprint จะเป็นช่วงสำหรับรวบรวม Features
-จาก Sprint ก่อนหน้าและเตรียม Project สำหรับ Final Submission
+รอบตรวจครอบคลุม API clients, SQLite, normalization, service, UI, statistics, config, import scripts, tests, CI และเอกสาร โดยยืนยันพฤติกรรมจาก tests และ source ปัจจุบัน
 
-**Sprint Goal:**
+- แยก RAWG popularity cache 24 ชั่วโมงจาก Steam player cache 15 นาที
+- ดึงผู้พัฒนาเฉพาะ Details และ cache ผลว่างที่สำเร็จด้วย
+- เก็บคะแนนที่ยังไม่มีค่าเฉลี่ยเป็น missing แทนการตีความว่าได้คะแนน 0
+- ใช้ SQL LIMIT ก่อนแปลง records และใช้ DataFrame ร่วมกันใน Statistics
+- ปิด connections หลัง transaction และตรวจ rollback
+- ใช้พาธจากตำแหน่งไฟล์แทน current working directory
+- ตรวจชุดไฟล์ส่งมอบที่ไม่มี .env หรือ virtualenv และรวม source ที่ tests ต้องใช้
 
-TBD
+## บทเรียนจากผลตรวจ
 
-**Main Focus:**
+| ประเด็น | บทเรียน |
+|:--|:--|
+| จำนวน requests | Parallel ลดเวลารอ แต่ไม่ลดจำนวนคำขอ; lazy loading ลดคำขอที่ไม่จำเป็น |
+| Missing values | 0, None และผลว่างจาก API ไม่ได้มีความหมายเดียวกัน |
+| Cache | ต้องแยกผลสำเร็จที่ว่างจากคำขอล้มเหลว เพื่อให้ retry ถูกจังหวะ |
+| Data loading | Pagination ใน UI ยังช้าได้หาก query/decode ทั้งฐานก่อนแบ่งหน้า |
+| SQLite | Connection context จัดการ transaction แต่ต้องปิด connection ด้วย |
+| Paths/imports | ต้องตรวจทั้ง package mode และ script mode จากโฟลเดอร์อื่น |
+| Repository | Tests ผ่านในเครื่องไม่พอ หากต้องใช้ไฟล์ที่ไม่รวมใน Git |
+| Documentation | ควรมีแหล่งเดียวสำหรับผล QA และแยกแผนเดิมจากสิ่งที่ตรวจแล้ว |
 
-* System Integration
-* Final Dashboard
-* Testing
-* Bug Fixing
-* Performance Improvement
-* Documentation
-* Final Presentation
+## การนำไปใช้ต่อ
 
----
+เริ่มจากอ่านเส้นทางข้อมูลจริง วัดงานที่ช้า แก้เฉพาะจุดที่มีหลักฐาน แล้วใช้ regression tests ตรวจผล การตรวจ clean checkout ช่วยพบ dependency ที่ถูกซ่อนไว้ในเครื่องนักพัฒนา
 
-## 2. What We Did
+ผล QA และขอบเขตที่ตรวจอยู่ใน [Final QA](FINAL_QA.md) รายละเอียดงานอยู่ใน [Final Sprint](<../Final Sprint/Final_Sprint.md>) การ commit/push, presentation และ submission ไม่ได้ถูกยืนยันว่าดำเนินการแล้วในรอบนี้
 
-> Update หลังจบ Final Sprint
+## สรุป
 
-TBD
-
----
-
-## 3. What We Learned
-
-> Update หลังจบ Final Sprint
-
-TBD
-
----
-
-## 4. Problems & Challenges
-
-> Update หลังจบ Final Sprint
-
-| Problem | Impact | Solution | Result |
-| ------- | ------ | -------- | ------ |
-| TBD     | TBD    | TBD      | TBD    |
-
----
-
-## 5. How We Solved Them
-
-> Update หลังจบ Final Sprint
-
-TBD
-
----
-
-## 6. Teamwork & Process Learning
-
-> Update หลังจบ Final Sprint
-
-TBD
-
----
-
-## 7. Technical Learning
-
-> Update หลังจบ Final Sprint
-
-TBD
-
----
-
-## 8. Instructor / Team Feedback
-
-> Update หลังจบ Final Sprint
-
-TBD
-
----
-
-## 9. Lessons Learned
-
-> Update หลังจบ Final Sprint
-
-TBD
-
----
-
-## 10. How We Will Apply This Learning
-
-เนื่องจาก Final Sprint เป็น Sprint สุดท้าย
-หัวข้อนี้สามารถใช้สรุปว่า
-ความรู้ทั้งหมดที่ได้จาก Project
-สามารถนำไปต่อยอดกับ Project อื่น
-หรือการพัฒนาทักษะของสมาชิกได้อย่างไร
-
-TBD
-
----
-
-## 11. Final Sprint Learning Summary
-
-| Learning Area      | Status |
-| ------------------ | ------ |
-| System Integration | ⏳ TBD  |
-| Testing            | ⏳ TBD  |
-| Bug Fixing         | ⏳ TBD  |
-| Performance        | ⏳ TBD  |
-| Documentation      | ⏳ TBD  |
-| Presentation       | ⏳ TBD  |
-| Teamwork           | ⏳ TBD  |
-
----
-
-# 📊 Overall Project Learning Summary
-
-Section นี้จะ Update เมื่อ Project ใกล้เสร็จ
-เพื่อสรุปสิ่งที่ทีมเรียนรู้ตลอดทั้ง Project
-
-| Area               | Sprint 1 | Sprint 2 | Sprint 3 | Final Sprint |
-| ------------------ | -------- | -------- | -------- | ------------ |
-| Planning           | ✅        | ✅        | ✅        | ⏳            |
-| Python             | ✅        | ✅        | ✅        | ⏳            |
-| Web Development    | ⏳        | ✅        | ✅        | ⏳            |
-| API                | ⏳        | ✅        | ✅        | ⏳            |
-| Database           | ⏳        | ✅        | ✅        | ⏳            |
-| Data Processing    | ⏳        | ✅        | ✅        | ⏳            |
-| Data Analysis      | ⏳        | ⏳        | ✅        | ⏳            |
-| Data Visualization | ⏳        | ⏳        | ✅        | ⏳            |
-| Testing            | ✅        | ✅        | ✅        | ⏳            |
-| Git / GitHub       | ✅        | ✅        | ✅        | ⏳            |
-| Teamwork           | ✅        | ✅        | ✅        | ⏳            |
-| Documentation      | ✅        | ✅        | ✅        | ⏳            |
-
----
-
-# 🧠 Final Project Reflection
-
-> Section นี้จะเขียนเมื่อ Project เสร็จสมบูรณ์
-
-ตลอดการพัฒนา Gaming Statistics Dashboard
-ทีมจะรวบรวมสิ่งที่เรียนรู้จากทุก Sprint
-ทั้งในด้าน Technical Skills, Project Management,
-Teamwork, Problem Solving และ Software Development Process
-
-**Final Reflection:**
-
-> TBD
-
+Sprint 1–3 ให้พื้นฐาน CLI, Web/API/SQLite และ Analysis/Visualization ส่วนรอบ final เพิ่ม reliability, request efficiency, performance และเอกสารใช้งานที่ทำตามได้ บันทึกประวัติด้านบนเก็บตามช่วงเดิม; ใช้ [README](../README.md) สำหรับพฤติกรรมปัจจุบัน

@@ -1,9 +1,11 @@
 # 🎮 Gaming Statistics Dashboard — Sprint 2 Report
 
+> บันทึกประวัติตามช่วง Sprint: โครงสร้างและพฤติกรรมบางส่วนเปลี่ยนในรุ่นส่งมอบ ให้ใช้ [README](../README.md) สำหรับการติดตั้ง/ใช้งานปัจจุบัน และ [Final QA](../docs/FINAL_QA.md) สำหรับผลตรวจล่าสุด
+
 ## Final Term Project — CP352301 Script Programming
 
 **Sprint:** Sprint 2 — Web UI, API Integration & Database  
-**Period:** 20–24 September 2569  
+**Period:** 20–24 September 2026 (20–24 กันยายน 2569)
 **Status:** ✅ Completed
 
 **Repository:** https://github.com/Phanuwatphk/Gaming-Statistics-Dashboard

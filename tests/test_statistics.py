@@ -10,6 +10,20 @@ from src.analysis.statistics import (
 )
 
 
+def test_prepared_analysis_frame_matches_list_results_without_mutation():
+    import pandas as pd
+    from src.analysis.statistics import games_to_dataframe, genre_rating_mean
+
+    games = sample_games()
+    frame = games_to_dataframe(games)
+    original = frame.copy(deep=True)
+    assert descriptive_statistics(frame) == descriptive_statistics(games)
+    pd.testing.assert_series_equal(genre_rating_mean(frame), genre_rating_mean(games))
+    pd.testing.assert_series_equal(release_year_frequency(frame), release_year_frequency(games))
+    pd.testing.assert_series_equal(numeric_values(frame, "metacritic"), numeric_values(games, "metacritic"))
+    pd.testing.assert_frame_equal(frame, original)
+
+
 def sample_games():
     return [
         {

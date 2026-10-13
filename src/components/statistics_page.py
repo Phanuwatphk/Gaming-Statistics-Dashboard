@@ -1,45 +1,48 @@
-from analysis.statistics import (
-    comparison_dataframe,
-    frequency_with_proportion,
-    numeric_values,
-    top_current_players,
-    descriptive_statistics,
-    genre_frequency,
-    genre_rating_mean,
-    platform_frequency,
-    release_year_frequency,
-)
+"""Statistics charts and comparisons, using one prepared analysis frame."""
+
+from __future__ import annotations
+
+from typing import Any
 
 import altair as alt
 import pandas as pd
 import streamlit as st
-from typing import Any
+
+if __package__ and __package__.startswith("src."):
+    from src.analysis import statistics as analysis
+else:
+    from analysis import statistics as analysis
 
 
 def render_statistics_page(
     games: list[dict[str, Any]], live_games: list[dict[str, Any]] | None = None
 ) -> None:
     """Render the statistics route using already-loaded game records."""
-    st.title("Statistics")
-    st.caption("Explore descriptive statistics, distributions, and game comparisons.")
-
     if not games:
         st.info("No data available. Add games through Search before viewing statistics.")
         return
 
-    stats = descriptive_statistics(games)
+    frame = analysis.games_to_dataframe(games)
+    stats = analysis.descriptive_statistics(frame)
 
-    c1, c2, c3, c4, c5 = st.columns(5)
-    c1.metric("Rated games", stats["count"])
-    c2.metric("Average Rating", f'{stats["mean"]:.2f}' if stats["mean"] is not None else "N/A")
-    c3.metric("Median Rating", f'{stats["median"]:.2f}' if stats["median"] is not None else "N/A")
-    c4.metric("Highest Rating", f'{stats["max"]:.2f}' if stats["max"] is not None else "N/A")
-    c5.metric("Lowest Rating", f'{stats["min"]:.2f}' if stats["min"] is not None else "N/A")
+    metrics = (
+        ("Average Rating", "mean"),
+        ("Median Rating", "median"),
+        ("Highest Rating", "max"),
+        ("Lowest Rating", "min"),
+        ("Rating standard deviation", "std"),
+    )
+    with st.container(key="statistics-metrics"):
+        columns = st.columns(1 + len(metrics))
+        columns[0].metric("Games Tracked", len(games))
+        for column, (label, field) in zip(columns[1:], metrics):
+            value = stats[field]
+            column.metric(label, f"{value:.2f}" if value is not None else "N/A")
 
     st.subheader("Genre Distribution")
-    genre_data = genre_frequency(games)
+    genre_data = analysis.genre_frequency(games)
     if not genre_data.empty:
-        genre_df = frequency_with_proportion(genre_data).head(10).rename(
+        genre_df = analysis.frequency_with_proportion(genre_data).head(10).rename(
             columns={"label": "Genre", "count": "Count", "proportion": "Share"}
         )
 
@@ -56,17 +59,17 @@ def render_statistics_page(
             )
         )
 
-        st.altair_chart(genre_chart, width="stretch")
+        _render_chart(genre_chart)
     else:
         st.info("No genre data available.")
 
 
     st.subheader("Platform Distribution")
 
-    platform_data = platform_frequency(games)
+    platform_data = analysis.platform_frequency(games)
 
     if not platform_data.empty:
-        platform_df = frequency_with_proportion(platform_data).head(10).rename(
+        platform_df = analysis.frequency_with_proportion(platform_data).head(10).rename(
             columns={"label": "Platform", "count": "Count", "proportion": "Share"}
         )
 
@@ -83,14 +86,14 @@ def render_statistics_page(
             )
         )
 
-        st.altair_chart(platform_chart, width="stretch")
+        _render_chart(platform_chart)
     else:
         st.info("No platform data available.")
 
 
     st.subheader("Rating by Genre")
 
-    rating_data = genre_rating_mean(games).head(10)
+    rating_data = analysis.genre_rating_mean(frame).head(10)
 
     if not rating_data.empty:
         rating_df = rating_data.rename("Average Rating").reset_index()
@@ -110,14 +113,14 @@ def render_statistics_page(
             )
         )
 
-        st.altair_chart(rating_chart, width="stretch")
+        _render_chart(rating_chart)
     else:
         st.info("No rating-by-genre data available.")
 
 
     st.subheader("Release Year Distribution")
 
-    year_data = release_year_frequency(games)
+    year_data = analysis.release_year_frequency(frame)
 
     if not year_data.empty:
         year_df = year_data.rename("Games").reset_index()
@@ -136,11 +139,11 @@ def render_statistics_page(
             )
         )
 
-        st.altair_chart(year_chart, width="stretch")
+        _render_chart(year_chart)
     else:
         st.info("No release-year data available.")
 
-    _render_metacritic_distribution(games)
+    _render_metacritic_distribution(frame)
     _render_live_player_chart(live_games or [])
 
     game_names = sorted(game["name"] for game in games)
@@ -159,15 +162,15 @@ def render_statistics_page(
     a = next(game for game in games if game["name"] == game_a)
     b = next(game for game in games if game["name"] == game_b)
 
-    comparison = comparison_dataframe(a, b)
+    comparison = analysis.comparison_dataframe(a, b)
 
     st.dataframe(comparison, hide_index=True, width="stretch")
 
 
 
-def _render_metacritic_distribution(games: list[dict[str, Any]]) -> None:
+def _render_metacritic_distribution(games: analysis.GameData) -> None:
     st.subheader("Metacritic score distribution")
-    scores = numeric_values(games, "metacritic")
+    scores = analysis.numeric_values(games, "metacritic")
     if scores.empty:
         st.info("No Metacritic data available.")
         return
@@ -181,12 +184,12 @@ def _render_metacritic_distribution(games: list[dict[str, Any]]) -> None:
             tooltip=[alt.Tooltip("count():Q", title="Games")],
         )
     )
-    st.altair_chart(chart, width="stretch")
+    _render_chart(chart)
 
 
 def _render_live_player_chart(games: list[dict[str, Any]]) -> None:
     st.subheader("Top live Steam players")
-    data = top_current_players(games)
+    data = analysis.top_current_players(games)
     if data.empty:
         st.info("No live Steam-player data available.")
         return
@@ -199,4 +202,16 @@ def _render_live_player_chart(games: list[dict[str, Any]]) -> None:
             tooltip=["Game", alt.Tooltip("Current Players:Q", format=",")],
         )
     )
-    st.altair_chart(chart, width="stretch")
+    _render_chart(chart)
+
+
+def _render_chart(chart: alt.Chart) -> None:
+    """Keep statistics charts consistent with the dashboard's card surfaces."""
+    with st.container(border=True):
+        st.altair_chart(
+            chart.configure(background="#ffffff")
+            .configure_view(stroke=None)
+            .configure_axis(labelColor="#61718a", titleColor="#3d506d", gridColor="#edf1f7")
+            .configure_range(category=["#2563eb", "#5796e5", "#8ab7ee", "#102947"]),
+            width="stretch",
+        )

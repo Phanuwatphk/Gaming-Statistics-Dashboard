@@ -6,6 +6,29 @@ import requests
 from src.api.rawg_api import RawgApiClient, RawgApiError, RawgConfigurationError
 
 
+def test_fetch_game_details_reads_developer_studios():
+    response = Mock()
+    response.json.return_value = {"id": 42, "developers": [{"name": "Supergiant Games"}]}
+    session = Mock()
+    session.get.return_value = response
+    client = RawgApiClient(api_key="test-key", session=session)
+
+    assert client.fetch_game_details(42)["developers"] == [{"name": "Supergiant Games"}]
+    session.get.assert_called_once_with(
+        "https://api.rawg.io/api/games/42", params={"key": "test-key"}, timeout=15
+    )
+
+
+@pytest.mark.parametrize("payload", [[], {"detail": "Not found"}, {"id": 99}])
+def test_fetch_game_details_rejects_invalid_or_mismatched_game(payload):
+    response = Mock()
+    response.json.return_value = payload
+    session = Mock()
+    session.get.return_value = response
+    with pytest.raises(RawgApiError):
+        RawgApiClient(api_key="test-key", session=session).fetch_game_details(42)
+
+
 def test_fetch_games_returns_rawg_results_without_live_request():
     response = Mock()
     response.json.return_value = {"results": [{"id": 1, "name": "Portal 2"}]}
