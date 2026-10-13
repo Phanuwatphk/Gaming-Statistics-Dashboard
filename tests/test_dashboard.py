@@ -1,5 +1,5 @@
 from pathlib import Path
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 import re
 from urllib.parse import parse_qs, urlsplit
 
@@ -11,6 +11,153 @@ from src.database.database import GameDatabase
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
+
+
+@pytest.mark.parametrize("failure", ["offline", "empty"])
+def test_remote_pagination_keeps_current_cards_on_failed_or_empty_page(tmp_path, monkeypatch, failure):
+    from unittest.mock import Mock
+    from src.utils.data_processing import process_game
+
+    monkeypatch.syspath_prepend(str(PROJECT_ROOT / "src"))
+    from api.rawg_api import RawgApiError
+    from services.game_service import GameService
+
+    fetch = Mock(return_value=[])
+    if failure == "offline":
+        fetch.side_effect = RawgApiError("offline")
+    monkeypatch.setattr(GameService, "import_catalog_page", fetch)
+    path = tmp_path / "failed-pagination.db"
+    database = GameDatabase(path)
+    database.save_catalog_games(
+        [process_game({"id": number, "name": f"Game {number}"}) for number in range(1, 51)],
+        "2026-10-13T10:00:00+07:00",
+    )
+    monkeypatch.setenv("GAMING_DASHBOARD_DB", str(path))
+    monkeypatch.setenv("GAMING_DASHBOARD_SKIP_REFRESH", "1")
+    app = AppTest.from_file(str(PROJECT_ROOT / "src/app.py"), default_timeout=10).run()
+    app.button(key="remote-pagination-home-next").click().run()
+
+    assert not app.exception
+    assert len([button for button in app.button if button.label == "View Details"]) == 50
+    assert "Page 1" in "".join(markdown.value for markdown in app.markdown)
+    assert app.error if failure == "offline" else app.info
+
+
+def test_same_session_refreshes_expired_snapshot_and_recovers_from_api_failure(tmp_path, monkeypatch):
+    from unittest.mock import Mock
+    from src.utils.data_processing import process_game
+
+    monkeypatch.syspath_prepend(str(PROJECT_ROOT / "src"))
+    from api.rawg_api import RawgApiClient
+    from api.steam_api import SteamApiClient, SteamApiError
+
+    raw_game = {"id": 42, "name": "Hades", "developers": [{"name": "Supergiant Games"}]}
+    rawg_fetch = Mock(return_value=[raw_game])
+    live_game = {
+        **process_game({"id": -730, "name": "Counter-Strike 2"}),
+        "steam_app_id": 730, "steam_lookup_status": "found", "current_players": 123,
+        "live_rank": 1,
+    }
+    steam_fetch = Mock(return_value=[live_game])
+    monkeypatch.setattr(RawgApiClient, "fetch_games", rawg_fetch)
+    monkeypatch.setattr(SteamApiClient, "get_most_played_games", steam_fetch)
+    path = tmp_path / "refresh.db"
+    database = GameDatabase(path)
+    monkeypatch.setenv("GAMING_DASHBOARD_DB", str(path))
+    monkeypatch.setenv("PLAYER_REFRESH_MINUTES", "15")
+    monkeypatch.setenv("CATALOG_REFRESH_HOURS", "24")
+    monkeypatch.delenv("GAMING_DASHBOARD_SKIP_REFRESH", raising=False)
+    app = AppTest.from_file(str(PROJECT_ROOT / "src/app.py"), default_timeout=10).run()
+    app.run()
+    assert not app.exception
+    assert steam_fetch.call_count == rawg_fetch.call_count == 1
+
+    # Twenty-minute-old RAWG data is still fresh despite the Steam interval.
+    database.set_metadata("catalog_last_refresh", (datetime.now(UTC) - timedelta(minutes=20)).isoformat())
+    app.run()
+    assert rawg_fetch.call_count == steam_fetch.call_count == 1
+
+    database.set_metadata("live_top_last_refresh", "2020-01-01T00:00:00+00:00")
+    steam_fetch.side_effect = SteamApiError("offline")
+    app.run()
+    assert not app.exception
+    assert database.get_live_top_games()[0]["current_players"] == 123
+    assert any("offline" in warning.value for warning in app.warning)
+
+    steam_fetch.side_effect = None
+    steam_fetch.return_value = [{**live_game, "current_players": 456}]
+    app.run()
+    assert not app.exception
+    assert database.get_live_top_games()[0]["current_players"] == 456
+    assert not app.warning
+    assert rawg_fetch.call_count == 1
+
+    database.set_metadata("catalog_last_refresh", (datetime.now(UTC) - timedelta(hours=25)).isoformat())
+    app.run()
+    assert not app.exception
+    assert rawg_fetch.call_count == 2
+    assert steam_fetch.call_count == 3
+
+
+@pytest.mark.parametrize("offline", [False, True])
+def test_details_show_developers_and_remain_usable_when_rawg_is_offline(tmp_path, monkeypatch, offline):
+    from unittest.mock import Mock
+    from src.utils.data_processing import process_game
+
+    monkeypatch.syspath_prepend(str(PROJECT_ROOT / "src"))
+    from api.rawg_api import RawgApiClient, RawgApiError
+
+    fetch = Mock(return_value={"id": 42, "developers": [{"name": "Studio <A> & B"}]})
+    if offline:
+        fetch.side_effect = RawgApiError("offline")
+    monkeypatch.setattr(RawgApiClient, "fetch_game_details", fetch)
+    path = tmp_path / "developer-details.db"
+    database = GameDatabase(path)
+    database.insert_games([process_game({"id": 42, "name": "Saved game", "rating": 4.8})])
+    monkeypatch.setenv("GAMING_DASHBOARD_DB", str(path))
+    monkeypatch.setenv("GAMING_DASHBOARD_SKIP_REFRESH", "1")
+    app = AppTest.from_file(str(PROJECT_ROOT / "src/app.py"), default_timeout=10).run()
+    app.session_state["dashboard_page"] = "detail"
+    app.session_state["selected_game_id"] = 42
+    app.run()
+
+    assert not app.exception
+    html = "".join(markdown.value for markdown in app.markdown)
+    assert "<h3>Developers</h3>" in html
+    assert "4.80 / 5" in html
+    if offline:
+        assert "No developer data available." in html
+        assert database.get_games()[0]["developers_updated_at"] is None
+    else:
+        assert "Studio &lt;A&gt; &amp; B" in html
+    fetch.assert_called_once_with(42)
+    app.run()
+    if offline:
+        assert fetch.call_count == 2
+    else:
+        fetch.assert_called_once_with(42)
+
+
+@pytest.mark.parametrize("rating", [None, 0.0, 4.8])
+def test_detail_rating_displays_na_for_unrated_existing_snapshot(tmp_path, monkeypatch, rating):
+    from src.utils.data_processing import process_game
+
+    path = tmp_path / "unrated.db"
+    database = GameDatabase(path)
+    # Insert raw zero to exercise databases imported before the fix.
+    database.insert_games([{**process_game({"id": 42, "name": "Game"}), "rating": rating, "ratings_count": 1}])
+    database.save_developers(42, [], "2026-10-13T20:00:00+07:00")
+    monkeypatch.setenv("GAMING_DASHBOARD_DB", str(path))
+    monkeypatch.setenv("GAMING_DASHBOARD_SKIP_REFRESH", "1")
+    app = AppTest.from_file(str(PROJECT_ROOT / "src/app.py"), default_timeout=10).run()
+    app.session_state["dashboard_page"] = "detail"
+    app.session_state["selected_game_id"] = 42
+    app.run()
+    assert not app.exception
+    html = "".join(markdown.value for markdown in app.markdown)
+    value = "N/A" if rating in (None, 0.0) else "4.80 / 5"
+    assert f'<div class="detail-label">Rating</div><div class="detail-value">{value}</div>' in html
+    assert "0.00 / 5" not in html
 
 
 @pytest.mark.parametrize(
@@ -156,6 +303,7 @@ def test_statistics_page_renders_charts_and_game_comparison(tmp_path, monkeypatc
 
     assert not app.exception
     assert len(app.subheader) == 6
+    assert next(metric for metric in app.metric if metric.label == "Rating standard deviation").value == "0.71"
     assert len(app.dataframe) == 1
 
 
@@ -206,6 +354,7 @@ def test_genre_links_open_the_selected_group_from_every_game_view(tmp_path, monk
     }
     database.save_catalog_games([game], updated_at="2026-10-08T10:00:00+07:00")
     database.save_live_top_games([game], "2026-10-08T10:00:00+07:00")
+    database.save_developers(1, [], "2026-10-08T10:00:00+07:00")
     monkeypatch.setenv("GAMING_DASHBOARD_DB", str(database_path))
     monkeypatch.setenv("GAMING_DASHBOARD_SKIP_REFRESH", "1")
     app = AppTest.from_file(str(PROJECT_ROOT / "src" / "app.py"), default_timeout=10).run()

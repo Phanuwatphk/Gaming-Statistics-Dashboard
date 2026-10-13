@@ -1,5 +1,7 @@
 # 🎮 Gaming Statistics Dashboard — Sprint 1 Report
 
+> บันทึกประวัติตามช่วง Sprint: โครงสร้างและพฤติกรรมบางส่วนเปลี่ยนในรุ่นส่งมอบ ให้ใช้ [README](../README.md) สำหรับการติดตั้ง/ใช้งานปัจจุบัน และ [Final QA](../docs/FINAL_QA.md) สำหรับผลตรวจล่าสุด
+
 ## Final Term Project — CP352301 Script Programming
 
 **Sprint:** Sprint 1 — Application Foundation  

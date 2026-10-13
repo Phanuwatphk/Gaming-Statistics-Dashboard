@@ -3,15 +3,18 @@
 from __future__ import annotations
 
 import os
-from pathlib import Path
 from typing import Any
 
 import requests
 from dotenv import load_dotenv
 
+if __package__ and __package__.startswith("src."):
+    from src.config import PROJECT_ROOT
+else:
+    from config import PROJECT_ROOT
+
 
 RAWG_GAMES_URL = "https://api.rawg.io/api/games"
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
 RAWG_MAX_PAGE_SIZE = 40
 
 
@@ -58,6 +61,47 @@ class RawgApiClient:
             page_size, search_term=term, require_results=False, ordering=None, page=page
         )
 
+    def fetch_game_details(self, game_id: int) -> dict[str, Any]:
+        """Fetch detail-only metadata, including the developer studios."""
+        payload = self._request_json(f"{RAWG_GAMES_URL}/{game_id}", {})
+        if payload.get("id") != game_id:
+            raise RawgApiError("RAWG API ส่งรูปแบบรายละเอียดเกมที่ไม่คาดไว้")
+        return payload
+
+    def _request_json(self, url: str, params: dict[str, Any]) -> dict[str, Any]:
+        """Apply the same authentication, transport and JSON checks everywhere."""
+        if not self.api_key.strip():
+            raise RawgConfigurationError(
+                "ไม่พบ RAWG API key: กรุณาตั้งค่า RAWG_API_KEY ในไฟล์ .env หรือ environment"
+            )
+        try:
+            response = self.session.get(
+                url,
+                params={"key": self.api_key.strip(), **params},
+                timeout=self.timeout,
+            )
+            response.raise_for_status()
+        except requests.Timeout as error:
+            raise RawgApiError("การเชื่อมต่อ RAWG API หมดเวลา กรุณาลองใหม่") from error
+        except requests.ConnectionError as error:
+            raise RawgApiError("ไม่สามารถเชื่อมต่อ RAWG API ได้ กรุณาตรวจสอบอินเทอร์เน็ต") from error
+        except requests.HTTPError as error:
+            status_code = error.response.status_code if error.response is not None else None
+            if status_code in {401, 403}:
+                message = "RAWG API key ไม่ถูกต้องหรือไม่มีสิทธิ์ใช้งาน"
+            else:
+                message = f"RAWG API ตอบกลับด้วย HTTP {status_code or 'error'}"
+            raise RawgApiError(message) from error
+        except requests.RequestException as error:
+            raise RawgApiError("เกิดข้อผิดพลาดขณะเรียก RAWG API") from error
+        try:
+            payload = response.json()
+        except ValueError as error:
+            raise RawgApiError("RAWG API ส่งข้อมูลที่ไม่ใช่ JSON") from error
+        if not isinstance(payload, dict):
+            raise RawgApiError("RAWG API ส่งรูปแบบข้อมูลที่ไม่คาดไว้")
+        return payload
+
     def _fetch_games(
         self,
         page_size: int,
@@ -66,10 +110,6 @@ class RawgApiClient:
         ordering: str | None,
         page: int,
     ) -> list[dict[str, Any]]:
-        if not self.api_key.strip():
-            raise RawgConfigurationError(
-                "ไม่พบ RAWG API key: กรุณาตั้งค่า RAWG_API_KEY ในไฟล์ .env หรือ environment"
-            )
         if not 1 <= page_size <= 100:
             raise ValueError("จำนวนเกมที่ดึงต้องอยู่ระหว่าง 1 ถึง 100")
         if page < 1:
@@ -83,40 +123,15 @@ class RawgApiClient:
             requested_size = (
                 page_size if page_size <= RAWG_MAX_PAGE_SIZE else RAWG_MAX_PAGE_SIZE
             )
-            try:
-                params = {"key": self.api_key.strip(), "page_size": requested_size}
-                if search_term:
-                    params["search"] = search_term
-                if ordering:
-                    params["ordering"] = ordering
-                if api_page > 1:
-                    params["page"] = api_page
-                response = self.session.get(
-                    RAWG_GAMES_URL,
-                    params=params,
-                    timeout=self.timeout,
-                )
-                response.raise_for_status()
-            except requests.Timeout as error:
-                raise RawgApiError("การเชื่อมต่อ RAWG API หมดเวลา กรุณาลองใหม่") from error
-            except requests.ConnectionError as error:
-                raise RawgApiError("ไม่สามารถเชื่อมต่อ RAWG API ได้ กรุณาตรวจสอบอินเทอร์เน็ต") from error
-            except requests.HTTPError as error:
-                status_code = error.response.status_code if error.response is not None else None
-                if status_code in {401, 403}:
-                    message = "RAWG API key ไม่ถูกต้องหรือไม่มีสิทธิ์ใช้งาน"
-                else:
-                    message = f"RAWG API ตอบกลับด้วย HTTP {status_code or 'error'}"
-                raise RawgApiError(message) from error
-            except requests.RequestException as error:
-                raise RawgApiError("เกิดข้อผิดพลาดขณะเรียก RAWG API") from error
-
-            try:
-                payload = response.json()
-            except ValueError as error:
-                raise RawgApiError("RAWG API ส่งข้อมูลที่ไม่ใช่ JSON") from error
-
-            if not isinstance(payload, dict) or not isinstance(payload.get("results"), list):
+            params = {"page_size": requested_size}
+            if search_term:
+                params["search"] = search_term
+            if ordering:
+                params["ordering"] = ordering
+            if api_page > 1:
+                params["page"] = api_page
+            payload = self._request_json(RAWG_GAMES_URL, params)
+            if not isinstance(payload.get("results"), list):
                 raise RawgApiError("RAWG API ส่งรูปแบบข้อมูลที่ไม่คาดไว้")
             page_games = payload["results"]
             games.extend(page_games)

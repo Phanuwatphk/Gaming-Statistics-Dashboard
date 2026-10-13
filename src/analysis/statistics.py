@@ -2,8 +2,13 @@ from __future__ import annotations
 
 import pandas as pd
 
+GameData = list[dict] | pd.DataFrame
 
-def games_to_dataframe(games: list[dict]) -> pd.DataFrame:
+
+def games_to_dataframe(games: GameData) -> pd.DataFrame:
+    """Normalize records once, or reuse an already-prepared analysis frame."""
+    if isinstance(games, pd.DataFrame):
+        return games
     if not games:
         return pd.DataFrame()
 
@@ -20,7 +25,7 @@ def games_to_dataframe(games: list[dict]) -> pd.DataFrame:
     return df
 
 
-def descriptive_statistics(games: list[dict]) -> dict:
+def descriptive_statistics(games: GameData) -> dict:
     df = games_to_dataframe(games)
 
     if df.empty:
@@ -75,7 +80,7 @@ def platform_frequency(games: list[dict]) -> pd.Series:
     return pd.Series(values, dtype="string").value_counts().astype("int64")
 
 
-def genre_rating_mean(games: list[dict]) -> pd.Series:
+def genre_rating_mean(games: GameData) -> pd.Series:
     df = games_to_dataframe(games)
     if df.empty or "genres" not in df.columns:
         return pd.Series(dtype=float)
@@ -84,7 +89,7 @@ def genre_rating_mean(games: list[dict]) -> pd.Series:
     return exploded.groupby("genres")["rating"].mean().sort_values(ascending=False)
 
 
-def release_year_frequency(games: list[dict]) -> pd.Series:
+def release_year_frequency(games: GameData) -> pd.Series:
     df = games_to_dataframe(games)
     if df.empty or "release_year" not in df.columns:
         return pd.Series(dtype=int)
@@ -107,7 +112,7 @@ def frequency_with_proportion(values: pd.Series) -> pd.DataFrame:
     return frame
 
 
-def numeric_values(games: list[dict], column: str) -> pd.Series:
+def numeric_values(games: GameData, column: str) -> pd.Series:
     """Return valid numeric values for one stored game field."""
     df = games_to_dataframe(games)
     if df.empty or column not in df.columns:
@@ -115,7 +120,7 @@ def numeric_values(games: list[dict], column: str) -> pd.Series:
     return pd.to_numeric(df[column], errors="coerce").dropna()
 
 
-def top_current_players(games: list[dict], limit: int = 10) -> pd.DataFrame:
+def top_current_players(games: GameData, limit: int = 10) -> pd.DataFrame:
     """Return the games with the highest available live Steam-player reading."""
     df = games_to_dataframe(games)
     required = {"name", "current_players"}

@@ -2,7 +2,45 @@
 
 All notable changes to the **Gaming Statistics Dashboard** project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project follows Semantic Versioning.
+The entries are organized by development milestones. Version labels in the historical Sprint entries do not imply that a release tag has been published.
+
+---
+
+## [Unreleased] — Final review, 2026-10-13
+
+Prepared for the owner's final commit; this entry does not claim a published release or successful remote deployment.
+
+### Added
+
+- Shared configuration for project-relative database paths and independent refresh intervals.
+- Developer information in Details, loaded on demand and cached.
+- Parallel RAWG import ranges with independent HTTP sessions, a bounded queue and a single SQLite writer.
+- Rating standard deviation in the Statistics metrics.
+- RAWG and Steam attribution links on every page through the sidebar.
+- Final QA report and tests covering cache, request counts, transactions, paths and import workflows.
+
+### Changed
+
+- RAWG Home refreshes after 24 hours; Steam refreshes after 15 minutes, checked on reruns.
+- Home loads only its displayed 50 records with SQL LIMIT.
+- Statistics reuse one prepared DataFrame.
+- RAWG authentication, transport and JSON errors share one implementation.
+- Runtime and development requirements are separate; CI compiles src/tests and runs the offline test suite.
+- Maintained import scripts are included in Git; the local historical CLI is excluded from the delivered suite.
+- README, project pitch, plan and final report describe implemented behavior rather than unverified future outcomes.
+
+### Fixed
+
+- Old game cards remain visible if loading the next API page fails or returns no games.
+- RAWG rating=0 is exposed as missing/N/A, including older snapshots.
+- Malformed records and non-finite numeric values no longer crash normalization.
+- SQLite connections close after commit/rollback.
+- App and scripts resolve relative database overrides against the project, including configuration loaded from .env.
+- Statistics imports work in package and Streamlit script modes.
+
+### Verification
+
+See [Final QA](FINAL_QA.md) for commands, results and limitations. Previous Sprint entries below are historical development records, not Git release-tag evidence.
 
 ---
 

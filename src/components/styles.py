@@ -99,6 +99,7 @@ def apply_dashboard_styles() -> None:
         .detail-label { color: #71819a; font-size: .8rem; margin-bottom: .65rem; }
         .detail-value { color: #142644; font-size: 1.2rem; line-height: 1.4; font-weight: 700; overflow-wrap: anywhere; }
         .detail-taxonomy { display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; margin-top: 1rem; }
+        .detail-developers { grid-column: 1 / -1; }
         .detail-section { background: #ffffff; border: 1px solid #dce7f5; border-radius: .9rem; padding: 1.25rem; min-width: 0; }
         [data-testid="stMain"] .detail-section h3 { margin: 0 0 1rem; padding: 0; font-size: 1rem; }
         .detail-tags { display: flex; flex-wrap: wrap; gap: .5rem; }

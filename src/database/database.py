@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+from contextlib import closing, contextmanager
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -15,6 +16,8 @@ CREATE TABLE IF NOT EXISTS games (
     rating REAL,
     released TEXT,
     genres TEXT NOT NULL DEFAULT '[]',
+    developers TEXT NOT NULL DEFAULT '[]',
+    developers_updated_at TEXT,
     platforms TEXT NOT NULL DEFAULT '[]',
     metacritic INTEGER,
     ratings_count INTEGER,
@@ -38,6 +41,8 @@ CREATE TABLE IF NOT EXISTS dashboard_metadata (
 """
 
 GAME_COLUMN_MIGRATIONS = {
+    "developers": "TEXT NOT NULL DEFAULT '[]'",
+    "developers_updated_at": "TEXT",
     "steam_app_id": "INTEGER",
     "steam_lookup_status": "TEXT NOT NULL DEFAULT 'pending'",
     "current_players": "INTEGER",
@@ -73,10 +78,17 @@ class GameDatabase:
     def initialize(self) -> None:
         """Create the games table if it does not already exist."""
         try:
-            with self.connect() as connection:
+            with self._connection() as connection:
                 self._prepare_schema(connection)
         except sqlite3.Error as error:
             raise DatabaseError("ไม่สามารถสร้างตาราง games ใน SQLite ได้") from error
+
+    @contextmanager
+    def _connection(self):
+        """Commit or roll back the operation, then always close the connection."""
+        with closing(self.connect()) as connection:
+            with connection:
+                yield connection
 
     def insert_games(self, games: Iterable[dict[str, Any]], updated_at: str | None = None) -> int:
         """Insert or update game records, using game_id to prevent duplicates."""
@@ -87,16 +99,18 @@ class GameDatabase:
         statement = """
         INSERT INTO games (
             game_id, name, rating, released, genres, platforms,
-            metacritic, ratings_count, image, catalog_updated_at
+            metacritic, ratings_count, image, catalog_updated_at, developers, developers_updated_at
         ) VALUES (
             :game_id, :name, :rating, :released, :genres, :platforms,
-            :metacritic, :ratings_count, :image, :catalog_updated_at
+            :metacritic, :ratings_count, :image, :catalog_updated_at, :developers, :developers_updated_at
         )
         ON CONFLICT(game_id) DO UPDATE SET
             name = excluded.name,
             rating = excluded.rating,
             released = excluded.released,
             genres = excluded.genres,
+            developers = CASE WHEN excluded.developers_updated_at IS NOT NULL OR excluded.developers != '[]' THEN excluded.developers ELSE games.developers END,
+            developers_updated_at = COALESCE(excluded.developers_updated_at, games.developers_updated_at),
             platforms = excluded.platforms,
             metacritic = excluded.metacritic,
             ratings_count = excluded.ratings_count,
@@ -105,7 +119,7 @@ class GameDatabase:
         """
         rows = [self._database_row({**game, "catalog_updated_at": updated_at}) for game in records]
         try:
-            with self.connect() as connection:
+            with self._connection() as connection:
                 self._prepare_schema(connection)
                 connection.executemany(statement, rows)
         except sqlite3.Error as error:
@@ -130,7 +144,7 @@ class GameDatabase:
         if not records:
             return saved
         try:
-            with self.connect() as connection:
+            with self._connection() as connection:
                 self._prepare_schema(connection)
                 if replace_snapshot:
                     connection.execute("UPDATE games SET catalog_rank = NULL")
@@ -145,7 +159,7 @@ class GameDatabase:
     def get_games(self) -> list[dict[str, Any]]:
         """Read all locally stored games in a stable, readable order."""
         try:
-            with self.connect() as connection:
+            with self._connection() as connection:
                 self._prepare_schema(connection)
                 rows = connection.execute(
                     """
@@ -164,7 +178,7 @@ class GameDatabase:
             return []
         placeholders = ", ".join("?" for _ in ids)
         try:
-            with self.connect() as connection:
+            with self._connection() as connection:
                 self._prepare_schema(connection)
                 rows = connection.execute(
                     f"SELECT * FROM games WHERE game_id IN ({placeholders})", ids
@@ -186,7 +200,7 @@ class GameDatabase:
             term.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
         )
         try:
-            with self.connect() as connection:
+            with self._connection() as connection:
                 self._prepare_schema(connection)
                 rows = connection.execute(
                     """
@@ -203,7 +217,7 @@ class GameDatabase:
     def game_exists(self, game_id: int) -> bool:
         """Return whether a RAWG game ID already exists in the database."""
         try:
-            with self.connect() as connection:
+            with self._connection() as connection:
                 self._prepare_schema(connection)
                 row = connection.execute(
                     "SELECT 1 FROM games WHERE game_id = ?", (game_id,)
@@ -215,7 +229,7 @@ class GameDatabase:
     def set_steam_mapping(self, game_id: int, steam_app_id: int | None) -> None:
         """Persist a resolved Steam app ID, or remember that no exact match exists."""
         try:
-            with self.connect() as connection:
+            with self._connection() as connection:
                 self._prepare_schema(connection)
                 connection.execute(
                     """
@@ -233,7 +247,7 @@ class GameDatabase:
     ) -> None:
         """Store the latest Steam player reading for one mapped game."""
         try:
-            with self.connect() as connection:
+            with self._connection() as connection:
                 self._prepare_schema(connection)
                 connection.execute(
                     """
@@ -254,7 +268,7 @@ class GameDatabase:
         if not rows:
             return 0
         try:
-            with self.connect() as connection:
+            with self._connection() as connection:
                 self._prepare_schema(connection)
                 connection.executemany(
                     """
@@ -303,7 +317,7 @@ class GameDatabase:
             for game in records
         ]
         try:
-            with self.connect() as connection:
+            with self._connection() as connection:
                 self._prepare_schema(connection)
                 connection.execute("UPDATE games SET is_live_top = 0, live_rank = NULL")
                 connection.executemany(statement, rows)
@@ -314,7 +328,7 @@ class GameDatabase:
     def get_live_top_games(self, limit: int = 100) -> list[dict[str, Any]]:
         """Read the latest Steam games ordered by current player count."""
         try:
-            with self.connect() as connection:
+            with self._connection() as connection:
                 self._prepare_schema(connection)
                 rows = connection.execute(
                     """
@@ -329,28 +343,45 @@ class GameDatabase:
             raise DatabaseError("ไม่สามารถอ่านอันดับผู้เล่น Steam ได้") from error
         return [self._game_from_row(row) for row in rows]
 
-    def get_popular_games(self) -> list[dict[str, Any]]:
+    def get_popular_games(self, limit: int | None = None) -> list[dict[str, Any]]:
         """Read RAWG discoveries stored locally, favouring broadly popular titles."""
         try:
-            with self.connect() as connection:
+            with self._connection() as connection:
                 self._prepare_schema(connection)
-                rows = connection.execute(
-                    """
+                query = """
                     SELECT * FROM games
                     WHERE game_id > 0
                     ORDER BY catalog_rank IS NULL, catalog_rank ASC,
                              ratings_count IS NULL, ratings_count DESC,
                              released IS NULL, released DESC, catalog_updated_at DESC
                     """
-                ).fetchall()
+                parameters = ()
+                if limit is not None:
+                    if limit < 1:
+                        raise ValueError("Game limit must be at least 1")
+                    query += " LIMIT ?"
+                    parameters = (limit,)
+                rows = connection.execute(query, parameters).fetchall()
         except sqlite3.Error as error:
             raise DatabaseError("ไม่สามารถอ่านเกมยอดนิยมจาก SQLite ได้") from error
         return [self._game_from_row(row) for row in rows]
 
+    def save_developers(self, game_id: int, developers: list[str], updated_at: str) -> None:
+        """Cache detail metadata separately from catalog and player snapshots."""
+        try:
+            with self._connection() as connection:
+                self._prepare_schema(connection)
+                connection.execute(
+                    "UPDATE games SET developers = ?, developers_updated_at = ? WHERE game_id = ?",
+                    (json.dumps(developers, ensure_ascii=False), updated_at, game_id),
+                )
+        except sqlite3.Error as error:
+            raise DatabaseError("ไม่สามารถบันทึกข้อมูลผู้พัฒนาเกมได้") from error
+
     def get_metadata(self, key: str) -> str | None:
         """Read a small dashboard-wide value such as the last refresh timestamp."""
         try:
-            with self.connect() as connection:
+            with self._connection() as connection:
                 self._prepare_schema(connection)
                 row = connection.execute(
                     "SELECT value FROM dashboard_metadata WHERE key = ?", (key,)
@@ -362,7 +393,7 @@ class GameDatabase:
     def set_metadata(self, key: str, value: str) -> None:
         """Store a small dashboard-wide value."""
         try:
-            with self.connect() as connection:
+            with self._connection() as connection:
                 self._prepare_schema(connection)
                 connection.execute(
                     """
@@ -392,17 +423,23 @@ class GameDatabase:
     def _database_row(game: dict[str, Any]) -> dict[str, Any]:
         return {
             **game,
+            "developers_updated_at": game.get("developers_updated_at"),
             "genres": json.dumps(game.get("genres", []), ensure_ascii=False),
+            "developers": json.dumps(game.get("developers", []), ensure_ascii=False),
             "platforms": json.dumps(game.get("platforms", []), ensure_ascii=False),
         }
 
     @staticmethod
     def _game_from_row(row: sqlite3.Row) -> dict[str, Any]:
         game = dict(row)
+        # Older snapshots store RAWG's unrated sentinel as 0.0.
+        if game["rating"] == 0:
+            game["rating"] = None
         # This is ordering metadata for the Home feed, not a game attribute
         # consumed by the rest of the dashboard.
         game.pop("catalog_rank", None)
         game["genres"] = _decode_list(game["genres"])
+        game["developers"] = _decode_list(game["developers"])
         game["platforms"] = _decode_list(game["platforms"])
         return game
 

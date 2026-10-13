@@ -89,6 +89,7 @@ def _render_sidebar() -> None:
             '<div class="sidebar-label">Game discovery dashboard</div>',
             unsafe_allow_html=True,
         )
+        st.caption("Game data: [RAWG](https://rawg.io) · Players: [Steam](https://store.steampowered.com/charts/mostplayed)")
         st.divider()
 
         for page, label in NAVIGATION:
@@ -104,7 +105,7 @@ def _render_sidebar() -> None:
 def _render_home(game_service: GameService) -> None:
     games = st.session_state.get("home-page-games")
     if games is None:
-        games = game_service.get_popular_games()[:GAMES_PER_PAGE]
+        games = game_service.get_popular_games(limit=GAMES_PER_PAGE)
     live_games = game_service.get_live_top_games()
     _page_heading("Popular Games", "Popular and widely played games saved from the latest RAWG discovery update.")
 
@@ -322,7 +323,11 @@ def _render_players_page(game_service: GameService) -> None:
 
 def _render_detail_page(game_service: GameService) -> None:
     game_id = st.session_state.selected_game_id
-    game = next((item for item in game_service.get_games() if item["game_id"] == game_id), None)
+    try:
+        game = game_service.get_game_details(game_id)
+    except RawgApiError as error:
+        st.warning(f"Developer information could not be loaded: {error}")
+        game = game_service.get_game_details(game_id, fetch_developers=False)
     if game is None:
         _render_empty_state("Game not found", "This game may have been removed from the library.")
         if st.button("Back to Game Library"):
@@ -354,13 +359,19 @@ def _render_detail_page(game_service: GameService) -> None:
     )
     platforms = "".join(f'<span class="platform-tag">{escape(platform)}</span>' for platform in game["platforms"])
     genres = "".join(_genre_link(genre) for genre in game["genres"])
+    developers = "".join(
+        f'<span class="platform-tag">{escape(developer)}</span>'
+        for developer in game.get("developers", [])
+    )
     st.markdown(
         f'<div class="detail-stats">{stat_cards}</div>'
         '<div class="detail-taxonomy">'
         '<section class="detail-section"><h3>Platforms</h3><div class="detail-tags">'
         f'{platforms or "<span class=detail-empty>No platform data available.</span>"}</div></section>'
         '<section class="detail-section"><h3>Genres</h3><div class="detail-tags">'
-        f'{genres or "<span class=detail-empty>No genre data available.</span>"}</div></section></div>',
+        f'{genres or "<span class=detail-empty>No genre data available.</span>"}</div></section>'
+        '<section class="detail-section detail-developers"><h3>Developers</h3><div class="detail-tags">'
+        f'{developers or "<span class=detail-empty>No developer data available.</span>"}</div></section></div>',
         unsafe_allow_html=True,
     )
 
@@ -454,13 +465,16 @@ def _render_remote_paginated_game_grid(
     requested_page = current_page - 1 if previous else current_page + 1 if next_page else None
     if requested_page is None or requested_page == current_page:
         return
-    cards_container.empty()
     try:
         with st.spinner("Loading games..."):
             page_games = fetch_page(requested_page)
     except (RawgApiError, DatabaseError, ValueError) as error:
         st.error(str(error))
         return
+    if not page_games:
+        st.info("No more games available.")
+        return
+    cards_container.empty()
     st.session_state[state_key] = requested_page
     st.session_state[f"{page_key}-page-games"] = page_games
     if page_key == "search-results":

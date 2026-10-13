@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from typing import Any
+from math import isfinite
 
 
 def process_games(raw_games: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -17,16 +18,24 @@ def process_games(raw_games: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 def process_game(raw_game: dict[str, Any]) -> dict[str, Any] | None:
     """Normalize one RAWG game while preserving missing optional fields as None."""
+    if not isinstance(raw_game, dict):
+        return None
     game_id = _as_int(raw_game.get("id"))
     if game_id is None:
         return None
 
+    rating = _as_float(raw_game.get("rating"))
+    # RAWG uses zero when there is no published aggregate rating.
+    if rating == 0:
+        rating = None
+
     return {
         "game_id": game_id,
         "name": _text_or_default(raw_game.get("name"), "Unknown game"),
-        "rating": _as_float(raw_game.get("rating")),
+        "rating": rating,
         "released": _text_or_none(raw_game.get("released")),
         "genres": _nested_names(raw_game.get("genres")),
+        "developers": _nested_names(raw_game.get("developers")),
         "platforms": _platform_names(raw_game.get("platforms")),
         "metacritic": _as_int(raw_game.get("metacritic")),
         "ratings_count": _as_int(raw_game.get("ratings_count")),
@@ -72,12 +81,13 @@ def _text_or_default(value: Any, default: str) -> str:
 def _as_int(value: Any) -> int | None:
     try:
         return int(value) if value is not None else None
-    except (TypeError, ValueError):
+    except (TypeError, ValueError, OverflowError):
         return None
 
 
 def _as_float(value: Any) -> float | None:
     try:
-        return float(value) if value is not None else None
-    except (TypeError, ValueError):
+        number = float(value) if value is not None else None
+        return number if number is not None and isfinite(number) else None
+    except (TypeError, ValueError, OverflowError):
         return None

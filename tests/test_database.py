@@ -1,6 +1,61 @@
 from src.database.database import GameDatabase
 
 
+def test_database_closes_connections_and_rolls_back_failed_batch(tmp_path, monkeypatch):
+    import sqlite3
+    import pytest
+    from src.database.database import DatabaseError
+
+    database = GameDatabase(tmp_path / "lifecycle.db")
+    connect = database.connect
+    connections = []
+
+    def track_connection():
+        connection = connect()
+        connections.append(connection)
+        return connection
+
+    monkeypatch.setattr(database, "connect", track_connection)
+    database.insert_games([sample_game(1, "Saved game")])
+    with pytest.raises(DatabaseError):
+        database.insert_games([sample_game(2, "New game"), {**sample_game(3), "name": None}])
+    assert [game["game_id"] for game in database.get_games()] == [1]
+    for connection in connections:
+        with pytest.raises(sqlite3.ProgrammingError, match="closed"):
+            connection.execute("SELECT 1")
+
+
+def test_popular_limit_preserves_order_and_only_decodes_requested_records(tmp_path, monkeypatch):
+    from unittest.mock import Mock
+
+    database = GameDatabase(tmp_path / "limited.db")
+    database.save_catalog_games([sample_game(3), sample_game(1), sample_game(2)], "2026-10-13T20:00:00+07:00")
+    decoder = Mock(wraps=database._game_from_row)
+    monkeypatch.setattr(database, "_game_from_row", decoder)
+    assert [game["game_id"] for game in database.get_popular_games(limit=2)] == [3, 1]
+    assert decoder.call_count == 2
+
+
+def test_existing_database_migrates_and_preserves_games_and_developer_cache(tmp_path):
+    import sqlite3
+    from src.database.database import CREATE_GAMES_TABLE
+
+    path = tmp_path / "old.db"
+    old_schema = CREATE_GAMES_TABLE.replace("    developers TEXT NOT NULL DEFAULT '[]',\n", "").replace("    developers_updated_at TEXT,\n", "")
+    with sqlite3.connect(path) as connection:
+        connection.execute(old_schema)
+        connection.execute("INSERT INTO games (game_id, name, current_players) VALUES (1, 'Saved game', 123)")
+
+    database = GameDatabase(path)
+    assert database.get_games()[0]["developers"] == []
+    database.save_developers(1, ["Studio A", "Studio B"], "2026-10-13T18:00:00+07:00")
+    restored = GameDatabase(path).get_games()[0]
+    assert restored["name"] == "Saved game"
+    assert restored["current_players"] == 123
+    assert restored["developers"] == ["Studio A", "Studio B"]
+    assert restored["developers_updated_at"] == "2026-10-13T18:00:00+07:00"
+
+
 def sample_game(game_id: int = 1, name: str = "Portal 2") -> dict:
     return {
         "game_id": game_id,
@@ -8,6 +63,8 @@ def sample_game(game_id: int = 1, name: str = "Portal 2") -> dict:
         "rating": 4.6,
         "released": "2011-04-18",
         "genres": ["Puzzle"],
+        "developers": [],
+        "developers_updated_at": None,
         "platforms": ["PC"],
         "metacritic": 95,
         "ratings_count": 2500,
