@@ -34,6 +34,10 @@ NAVIGATION = (
     ("statistics", "Statistics"),
 )
 GAMES_PER_PAGE = 50
+LIBRARY_WIDGET_KEYS = (
+    "library-genres", "library-platforms", "library-minimum-rating",
+    "library-release-years", "library-sort-by", "library-sort-order",
+)
 
 
 def render_dashboard(game_service: GameService) -> None:
@@ -164,16 +168,17 @@ def _render_collection_filters(games: list[dict[str, Any]]) -> list[dict[str, An
 
     genre_column, platform_column, rating_column, year_column = st.columns(4)
     with genre_column:
-        selected_genres = st.multiselect("Genre", genre_options, placeholder="All genres")
+        selected_genres = st.multiselect("Genre", genre_options, placeholder="All genres", key="library-genres")
     with platform_column:
-        selected_platforms = st.multiselect("Platform", platform_options, placeholder="All platforms")
+        selected_platforms = st.multiselect("Platform", platform_options, placeholder="All platforms", key="library-platforms")
     with rating_column:
-        minimum_rating = st.number_input("Minimum rating", min_value=0.0, max_value=5.0, value=0.0, step=0.1, disabled=not ratings)
+        minimum_rating = st.number_input("Minimum rating", min_value=0.0, max_value=5.0, value=0.0, step=0.1, disabled=not ratings, key="library-minimum-rating")
     with year_column:
         if release_years and release_years[0] != release_years[-1]:
             selected_years = st.slider(
                 "Release year", min_value=release_years[0], max_value=release_years[-1],
                 value=(release_years[0], release_years[-1]),
+                key="library-release-years",
             )
         else:
             st.text_input("Release year", value=str(release_years[0]) if release_years else "Unavailable", disabled=True)
@@ -330,12 +335,12 @@ def _render_detail_page(game_service: GameService) -> None:
         game = game_service.get_game_details(game_id, fetch_developers=False)
     if game is None:
         _render_empty_state("Game not found", "This game may have been removed from the library.")
-        if st.button("Back to Game Library"):
-            _go_to("games")
+        if st.button("← Back to Games"):
+            _return_from_details()
         return
 
     if st.button("← Back to Games"):
-        _go_to("games")
+        _return_from_details()
     _page_heading(game["name"], "Everything you need to know at a glance.")
 
     if game["image"]:
@@ -562,9 +567,27 @@ def _display_timestamp(value: str) -> str:
 
 
 def _go_to(page: str) -> None:
+    if page == "detail" and st.session_state.dashboard_page != "detail":
+        st.session_state.detail_origin = st.session_state.dashboard_page
+        # Streamlit removes widget state when its page is no longer rendered.
+        st.session_state.detail_library_state = {
+            key: st.session_state[key]
+            for key in LIBRARY_WIDGET_KEYS if key in st.session_state
+        }
     st.session_state.dashboard_page = page
     _scroll_to_top()
     st.rerun()
+
+
+def _return_from_details() -> None:
+    """Return to the originating collection with its existing browsing state."""
+    origin = st.session_state.get("detail_origin", "games")
+    if origin not in {page for page, _ in NAVIGATION}:
+        origin = "games"
+    if origin == "games":
+        for key, value in st.session_state.get("detail_library_state", {}).items():
+            st.session_state[key] = value
+    _go_to(origin)
 
 def _scroll_to_top() -> None:
     """Schedule a unique top-of-page viewport reset for the following run."""

@@ -13,6 +13,74 @@ from src.database.database import GameDatabase
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 
+@pytest.mark.parametrize("origin", ["home", "games", "search", "genres", "top_rated", "players"])
+def test_details_back_returns_to_origin(tmp_path, monkeypatch, origin):
+    from src.utils.data_processing import process_game
+
+    database = GameDatabase(tmp_path / "back.db")
+    game = {
+        **process_game({"id": 1, "name": "Game A", "rating": 4.0, "genres": [{"name": "Action"}]}),
+        "steam_app_id": 1, "steam_lookup_status": "found",
+        "current_players": 100, "live_rank": 1,
+    }
+    database.save_catalog_games([game], "2026-10-13T10:00:00+07:00")
+    database.save_live_top_games([game], "2026-10-13T10:00:00+07:00")
+    database.save_developers(1, [], "2026-10-13T10:00:00+07:00")
+    monkeypatch.setenv("GAMING_DASHBOARD_DB", str(database.database_path))
+    monkeypatch.setenv("GAMING_DASHBOARD_SKIP_REFRESH", "1")
+    app = AppTest.from_file(str(PROJECT_ROOT / "src/app.py"), default_timeout=10).run()
+    if origin == "search":
+        app.session_state["search_results_term"] = "Game A"
+        app.session_state["search_results_games"] = database.get_games()
+    app.button(key=f"navigation-{origin}").click().run()
+    next(button for button in app.button if button.label == "View Details").click().run()
+    assert not app.exception
+    # A normal rerun on Details must not replace the originating page.
+    app.run()
+    next(button for button in app.button if button.label == "← Back to Games").click().run()
+    assert not app.exception
+    assert app.session_state["dashboard_page"] == origin
+    assert any(button.label == "View Details" for button in app.button)
+
+
+def test_details_back_preserves_library_filters_sort_and_page(tmp_path, monkeypatch):
+    from src.utils.data_processing import process_game
+
+    path = tmp_path / "library-back.db"
+    database = GameDatabase(path)
+    database.insert_games([
+        process_game({
+            "id": number, "name": f"Game {number:03d}", "rating": 4.0,
+            "released": f"{2020 + number % 2}-01-01",
+            "genres": [{"name": "Action"}],
+            "platforms": [{"platform": {"name": "PC"}}],
+        }) for number in range(1, 101)
+    ])
+    for number in range(1, 101):
+        database.save_developers(number, [], "2026-10-13T10:00:00+07:00")
+    monkeypatch.setenv("GAMING_DASHBOARD_DB", str(path))
+    monkeypatch.setenv("GAMING_DASHBOARD_SKIP_REFRESH", "1")
+    app = AppTest.from_file(str(PROJECT_ROOT / "src/app.py"), default_timeout=10).run()
+    app.button(key="navigation-games").click().run()
+    app.multiselect(key="library-genres").set_value(["Action"])
+    app.multiselect(key="library-platforms").set_value(["PC"])
+    app.number_input(key="library-minimum-rating").set_value(3.0)
+    app.selectbox(key="library-sort-by").select("Name")
+    app.selectbox(key="library-sort-order").select("Ascending").run()
+    app.button(key="pagination-games-next").click().run()
+    original_cards = [button.key for button in app.button if button.label == "View Details"]
+    next(button for button in app.button if button.label == "View Details").click().run()
+    next(button for button in app.button if button.label == "← Back to Games").click().run()
+    assert not app.exception
+    assert app.session_state["pagination-games"] == 2
+    assert app.multiselect(key="library-genres").value == ["Action"]
+    assert app.multiselect(key="library-platforms").value == ["PC"]
+    assert app.number_input(key="library-minimum-rating").value == 3.0
+    assert app.selectbox(key="library-sort-by").value == "Name"
+    assert app.selectbox(key="library-sort-order").value == "Ascending"
+    assert [button.key for button in app.button if button.label == "View Details"] == original_cards
+
+
 @pytest.mark.parametrize("failure", ["offline", "empty"])
 def test_remote_pagination_keeps_current_cards_on_failed_or_empty_page(tmp_path, monkeypatch, failure):
     from unittest.mock import Mock

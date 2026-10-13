@@ -1,5 +1,9 @@
 # Local configuration and runtime data
 .env
+# Local tool configuration (may contain machine settings or credentials).
+.agents/
+.aws/
+.codex/
 data/*.db
 # Ship the game snapshot so new Streamlit instances have saved card data.
 !data/gaming_statistics.db
