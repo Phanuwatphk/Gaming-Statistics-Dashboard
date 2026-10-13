@@ -266,8 +266,6 @@ Gaming-Statistics-Dashboard/
 
 ## 🔗 Repository
 
-**GitHub:** https://github.com/Phanuwatphk/Gaming-Statistics-Dashboard
-
 **CP352301 Script Programming — Final Term Project**
 
 *From Game Data to Gaming Statistics Dashboard*

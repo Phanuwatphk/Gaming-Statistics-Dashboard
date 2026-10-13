@@ -20,17 +20,15 @@ def render_statistics_page(
     games: list[dict[str, Any]], live_games: list[dict[str, Any]] | None = None
 ) -> None:
     """Render the statistics route using already-loaded game records."""
-    st.title("Statistics")
-    st.caption("Explore descriptive statistics, distributions, and game comparisons.")
-
     if not games:
         st.info("No data available. Add games through Search before viewing statistics.")
         return
 
     stats = descriptive_statistics(games)
 
-    c1, c2, c3, c4, c5 = st.columns(5)
-    c1.metric("Rated games", stats["count"])
+    with st.container(key="statistics-metrics"):
+        c1, c2, c3, c4, c5 = st.columns(5)
+    c1.metric("Games Tracked", len(games))
     c2.metric("Average Rating", f'{stats["mean"]:.2f}' if stats["mean"] is not None else "N/A")
     c3.metric("Median Rating", f'{stats["median"]:.2f}' if stats["median"] is not None else "N/A")
     c4.metric("Highest Rating", f'{stats["max"]:.2f}' if stats["max"] is not None else "N/A")
@@ -56,7 +54,7 @@ def render_statistics_page(
             )
         )
 
-        st.altair_chart(genre_chart, width="stretch")
+        _render_chart(genre_chart)
     else:
         st.info("No genre data available.")
 
@@ -83,7 +81,7 @@ def render_statistics_page(
             )
         )
 
-        st.altair_chart(platform_chart, width="stretch")
+        _render_chart(platform_chart)
     else:
         st.info("No platform data available.")
 
@@ -110,7 +108,7 @@ def render_statistics_page(
             )
         )
 
-        st.altair_chart(rating_chart, width="stretch")
+        _render_chart(rating_chart)
     else:
         st.info("No rating-by-genre data available.")
 
@@ -136,7 +134,7 @@ def render_statistics_page(
             )
         )
 
-        st.altair_chart(year_chart, width="stretch")
+        _render_chart(year_chart)
     else:
         st.info("No release-year data available.")
 
@@ -181,7 +179,7 @@ def _render_metacritic_distribution(games: list[dict[str, Any]]) -> None:
             tooltip=[alt.Tooltip("count():Q", title="Games")],
         )
     )
-    st.altair_chart(chart, width="stretch")
+    _render_chart(chart)
 
 
 def _render_live_player_chart(games: list[dict[str, Any]]) -> None:
@@ -199,4 +197,16 @@ def _render_live_player_chart(games: list[dict[str, Any]]) -> None:
             tooltip=["Game", alt.Tooltip("Current Players:Q", format=",")],
         )
     )
-    st.altair_chart(chart, width="stretch")
+    _render_chart(chart)
+
+
+def _render_chart(chart: alt.Chart) -> None:
+    """Keep statistics charts consistent with the dashboard's card surfaces."""
+    with st.container(border=True):
+        st.altair_chart(
+            chart.configure(background="#ffffff")
+            .configure_view(stroke=None)
+            .configure_axis(labelColor="#61718a", titleColor="#3d506d", gridColor="#edf1f7")
+            .configure_range(category=["#2563eb", "#5796e5", "#8ab7ee", "#102947"]),
+            width="stretch",
+        )
