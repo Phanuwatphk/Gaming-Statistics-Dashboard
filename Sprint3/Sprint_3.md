@@ -73,11 +73,11 @@ Sprint 3 เป็นการพัฒนาต่อยอดจาก Sprint 
 
 Sprint 3 ใช้ Role Rotation จาก Sprint ก่อนหน้า โดยแบ่งหน้าที่ดังนี้:
 
-| สมาชิก | Role | หน้าที่หลัก |
-|---|---|---|
-| **ออม** | Planner | กำหนด Sprint Goal, Scope, Requirements, Definition of Done, แบ่งงาน ติดตามความคืบหน้า และจัดทำ Documentation |
-| **คิม** | Coder | พัฒนา Data Processing, Analysis, Statistics, Visualization และ Features ที่อยู่ใน Scope ของ Sprint 3 |
-| **ฟลุ๊ค** | Debugger | ออกแบบและดำเนินการทดสอบ ตรวจสอบผลลัพธ์ วิเคราะห์ปัญหา และยืนยันการแก้ไข Bug |
+| สมาชิก | ชื่อเล่น | Role | หน้าที่หลัก |
+|---| --- |---|---|
+| นายเดโชชิต โตวินัส | ออม | Planner | กำหนด Sprint Goal, Scope, Requirements, Definition of Done, แบ่งงาน ติดตามความคืบหน้า และจัดทำ Documentation |
+| นายชิษณุพงศ์ ซู | คิม | Coder | พัฒนา Data Processing, Analysis, Statistics, Visualization และ Features ที่อยู่ใน Scope ของ Sprint 3 |
+| นายภานุวัฒน์ ผองแก้ว | ฟลุ๊ค | Debugger | ออกแบบและดำเนินการทดสอบ ตรวจสอบผลลัพธ์ วิเคราะห์ปัญหา และยืนยันการแก้ไข Bug |
 
 
 ---
@@ -928,7 +928,7 @@ _PLAYERS_REFRESH_LOCK
 
 ## Task 1 — Sprint Planning & Requirements
 
-### Planner — ออม
+### Planner — ออม (นายเดโชชิต โตวินัส)
 
 ดำเนินการ:
 
@@ -946,7 +946,7 @@ _PLAYERS_REFRESH_LOCK
 
 ## Task 2 — Data Processing & Preparation
 
-### Coder — คิม
+### Coder — คิม (นายชิษณุพงศ์ ซู)
 
 ดำเนินการ:
 
@@ -957,7 +957,7 @@ _PLAYERS_REFRESH_LOCK
 * Release Year Extraction
 * Genre / Platform Normalization
 
-### Debugger — ฟลุ๊ค
+### Debugger — ฟลุ๊ค (นายภานุวัฒน์ ผองแก้ว)
 
 ดำเนินการ:
 
@@ -972,7 +972,7 @@ _PLAYERS_REFRESH_LOCK
 
 ## Task 3 — EDA & Statistical Analysis
 
-### Coder — คิม
+### Coder — คิม (นายชิษณุพงศ์ ซู)
 
 พัฒนา:
 
@@ -987,7 +987,7 @@ _PLAYERS_REFRESH_LOCK
 * Top Current Players
 * Game Comparison
 
-### Debugger — ฟลุ๊ค
+### Debugger — ฟลุ๊ค (นายภานุวัฒน์ ผองแก้ว)
 
 ตรวจสอบ:
 
@@ -1003,7 +1003,7 @@ _PLAYERS_REFRESH_LOCK
 
 ## Task 4 — Dashboard Statistics & Visualization
 
-### Coder — คิม
+### Coder — คิม (นายชิษณุพงศ์ ซู)
 
 พัฒนา:
 
@@ -1017,7 +1017,7 @@ _PLAYERS_REFRESH_LOCK
 * Top Live Steam Players
 * Game Comparison Table
 
-### Debugger — ฟลุ๊ค
+### Debugger — ฟลุ๊ค (นายภานุวัฒน์ ผองแก้ว)
 
 ตรวจสอบ:
 
@@ -1033,7 +1033,7 @@ _PLAYERS_REFRESH_LOCK
 
 ## Task 5 — Advanced Features & Integration
 
-### Coder — คิม
+### Coder — คิม (นายชิษณุพงศ์ ซู)
 
 พัฒนา:
 
@@ -1043,7 +1043,7 @@ _PLAYERS_REFRESH_LOCK
 * Game Comparison
 * Analysis / Dashboard Integration
 
-### Debugger — ฟลุ๊ค
+### Debugger — ฟลุ๊ค (นายภานุวัฒน์ ผองแก้ว)
 
 ตรวจสอบ:
 
@@ -1059,7 +1059,7 @@ _PLAYERS_REFRESH_LOCK
 
 # 19. Sprint 3 Daily Task Allocation & Actual Result
 
-| วันที่           | Planner — ออม                                           | Coder — คิม                                                                    | Debugger — ฟลุ๊ค                                                    | ผลการดำเนินงาน                         |
+| วันที่           | Planner — ออม (นายเดโชชิต โตวินัส)                                           | Coder — คิม (นายชิษณุพงศ์ ซู)                                                                    | Debugger — ฟลุ๊ค (นายภานุวัฒน์ ผองแก้ว)                                                    | ผลการดำเนินงาน                         |
 | ---------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------- | -------------------------------------- |
 | **25 ก.ย. 2569** | กำหนด Sprint Goal, Scope, Requirements และแบ่งงาน       | ตรวจสอบโครงสร้างโค้ดและวิเคราะห์งานที่ต้องพัฒนาจาก Sprint 2                    | เตรียมแนวทาง Test Cases และตรวจสอบจุดที่ต้องทดสอบ                   | **Planning & Technical Preparation** ✅ |
 | **26 ก.ย. 2569** | ติดตามความคืบหน้าและตรวจสอบขอบเขต Data Analysis         | พัฒนา Data Processing, Data Normalization และ Analysis Layer (`statistics.py`) | ทดสอบ Data Processing, Data Type และ Missing Data                   | **Data Processing & Analysis** ✅       |
@@ -1440,7 +1440,7 @@ Dashboard สามารถใช้ข้อมูล Current Players ล่�
 
 Contribution Score ไม่ได้ถูกกำหนดไว้ใน Source Code / Sprint Result ดังนั้นจะไม่กำหนดคะแนนย้อนหลังโดยไม่มีหลักฐาน
 
-## 28.1 Planner — ออม
+## 28.1 Planner — ออม (นายเดโชชิต โตวินัส)
 
 | งานที่รับผิดชอบ      | รายละเอียด                                |      คะแนน |
 | -------------------- | ----------------------------------------- | ---------: |
@@ -1453,7 +1453,7 @@ Contribution Score ไม่ได้ถูกกำหนดไว้ใน Sou
 
 ---
 
-## 28.2 Coder — คิม
+## 28.2 Coder — คิม (นายชิษณุพงศ์ ซู)
 
 | งานที่รับผิดชอบ               | รายละเอียด                                       |      คะแนน |
 | ----------------------------- | ------------------------------------------------ | ---------: |
@@ -1467,7 +1467,7 @@ Contribution Score ไม่ได้ถูกกำหนดไว้ใน Sou
 
 ---
 
-## 28.3 Debugger — ฟลุ๊ค
+## 28.3 Debugger — ฟลุ๊ค (นายภานุวัฒน์ ผองแก้ว)
 
 | งานที่รับผิดชอบ         | รายละเอียด                               |      คะแนน |
 | ----------------------- | ---------------------------------------- | ---------: |
@@ -1483,12 +1483,12 @@ Contribution Score ไม่ได้ถูกกำหนดไว้ใน Sou
 
 # 29. Contribution Summary
 
-| สมาชิก    | Role     | คะแนนที่ได้รับ | คะแนนเต็ม | Completion |
-| --------- | -------- | -------------: | --------: | ---------: |
-| **ออม**   | Planner  |              50 |        50 |          100% |
-| **คิม**   | Coder    |              50 |        50 |          100% |
-| **ฟลุ๊ค** | Debugger |              50 |        50 |          100% |
-| **Total** |          |          **150** |   **150** |      **100%** |
+| สมาชิก | ชื่อเล่น | Role     | คะแนนที่ได้รับ | คะแนนเต็ม | Completion |
+| --------- | --- | -------- | -------------: | --------: | ---------: |
+| นายเดโชชิต โตวินัส | ออม | Planner  |              50 |        50 |          100% |
+| นายชิษณุพงศ์ ซู | คิม | Coder    |              50 |        50 |          100% |
+| นายภานุวัฒน์ ผองแก้ว | ฟลุ๊ค | Debugger |              50 |        50 |          100% |
+| | |          |          **150** |   **150** |      **100%** |
 
 
 ---

@@ -159,11 +159,11 @@ CLI ของ Sprint 1 อยู่ใน `src/lagacy/` เพื่อเก็
 
 ## 👥 ทีมและ Sprint
 
-| สมาชิก | Sprint 1 | Sprint 2 | Sprint 3 | Final Sprint |
-|:--|:--|:--|:--|:--|
-| คิม | Planner | Debugger | Coder | Planner |
-| ฟลุ๊ค | Coder | Planner | Debugger | Coder |
-| ออม | Debugger | Coder | Planner | Debugger |
+| สมาชิก | ชื่อเล่น | Sprint 1 | Sprint 2 | Sprint 3 | Final Sprint |
+|:--|:--|:--|:--|:--|:--|
+| นายชิษณุพงศ์ ซู | คิม | Planner | Debugger | Coder | Planner |
+| นายภานุวัฒน์ ผองแก้ว | ฟลุ๊ค | Coder | Planner | Debugger | Coder |
+| นายเดโชชิต โตวินัส | ออม | Debugger | Coder | Planner | Debugger |
 
 | Sprint | ช่วงตามแผน | งานหลัก |
 |:--|:--|:--|

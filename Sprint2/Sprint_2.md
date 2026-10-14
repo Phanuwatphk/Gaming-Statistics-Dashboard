@@ -90,11 +90,11 @@ Web Dashboard
 
 # 3. Team Members & Roles
 
-| สมาชิก    | Role          | หน้าที่หลัก                                                                            |
-| --------- | ------------- | -------------------------------------------------------------------------------------- |
-| **ฟลุ๊ค** | Planner       | Sprint Planning, Scope, Requirements, Architecture, Documentation และติดตามความคืบหน้า |
-| **ออม**   | Coder         | Web Application, Streamlit UI, RAWG API, Steam API, SQLite และ Application Logic       |
-| **คิม**   | Debugger / QA | Testing, QA, Edge Cases, Error Checking และ Bug Verification                           |
+| สมาชิก | ชื่อเล่น | Role          | หน้าที่หลัก                                                                            |
+| --------- | --- | ------------- | -------------------------------------------------------------------------------------- |
+| นายภานุวัฒน์ ผองแก้ว | ฟลุ๊ค | Planner       | Sprint Planning, Scope, Requirements, Architecture, Documentation และติดตามความคืบหน้า |
+| นายเดโชชิต โตวินัส | ออม | Coder         | Web Application, Streamlit UI, RAWG API, Steam API, SQLite และ Application Logic       |
+| นายชิษณุพงศ์ ซู | คิม | Debugger / QA | Testing, QA, Edge Cases, Error Checking และ Bug Verification                           |
 
 ---
 
@@ -944,7 +944,7 @@ GAMING_DASHBOARD_DB = data/gaming_statistics.db
 
 ## Task 1 — Web Application
 
-### Planner — ฟลุ๊ค
+### Planner — ฟลุ๊ค (นายภานุวัฒน์ ผองแก้ว)
 
 * กำหนด Web Application Scope
 * กำหนด Navigation
@@ -952,14 +952,14 @@ GAMING_DASHBOARD_DB = data/gaming_statistics.db
 * ตรวจสอบ Architecture
 * ติดตามความคืบหน้า
 
-### Coder — ออม
+### Coder — ออม (นายเดโชชิต โตวินัส)
 
 * สร้าง Streamlit Entry Point
 * สร้าง Dashboard
 * สร้าง Sidebar Navigation
 * สร้าง Page Components
 
-### Debugger — คิม
+### Debugger — คิม (นายชิษณุพงศ์ ซู)
 
 * ตรวจสอบ Web UI
 * ตรวจสอบ Navigation
@@ -970,13 +970,13 @@ GAMING_DASHBOARD_DB = data/gaming_statistics.db
 
 ## Task 2 — RAWG API
 
-### Planner — ฟลุ๊ค
+### Planner — ฟลุ๊ค (นายภานุวัฒน์ ผองแก้ว)
 
 * กำหนดข้อมูลที่ต้องใช้
 * ตรวจสอบ API Scope
 * ตรวจสอบ Error Cases
 
-### Coder — ออม
+### Coder — ออม (นายเดโชชิต โตวินัส)
 
 * สร้าง RAWG API Client
 * Implement Game Fetch
@@ -984,7 +984,7 @@ GAMING_DASHBOARD_DB = data/gaming_statistics.db
 * Implement Pagination
 * Implement Error Handling
 
-### Debugger — คิม
+### Debugger — คิม (นายชิษณุพงศ์ ซู)
 
 * ทดสอบ API Response
 * ทดสอบ Invalid API Key
@@ -995,13 +995,13 @@ GAMING_DASHBOARD_DB = data/gaming_statistics.db
 
 ## Task 3 — Steam API
 
-### Planner — ฟลุ๊ค
+### Planner — ฟลุ๊ค (นายภานุวัฒน์ ผองแก้ว)
 
 * กำหนด Live Player Feature
 * กำหนด Steam Data Flow
 * กำหนด Snapshot Concept
 
-### Coder — ออม
+### Coder — ออม (นายเดโชชิต โตวินัส)
 
 * Implement Steam Store Search
 * Implement Steam App ID Mapping
@@ -1011,7 +1011,7 @@ GAMING_DASHBOARD_DB = data/gaming_statistics.db
 * Implement Concurrent Requests
 * Implement Steam Error Handling
 
-### Debugger — คิม
+### Debugger — คิม (นายชิษณุพงศ์ ซู)
 
 * ทดสอบ Steam API
 * ทดสอบ Current Player Count
@@ -1023,13 +1023,13 @@ GAMING_DASHBOARD_DB = data/gaming_statistics.db
 
 ## Task 4 — SQLite Database
 
-### Planner — ฟลุ๊ค
+### Planner — ฟลุ๊ค (นายภานุวัฒน์ ผองแก้ว)
 
 * ออกแบบ Database Concept
 * กำหนดข้อมูลที่ต้องจัดเก็บ
 * ตรวจสอบ Data Flow
 
-### Coder — ออม
+### Coder — ออม (นายเดโชชิต โตวินัส)
 
 * Implement SQLite Connection
 * Create Games Table
@@ -1039,7 +1039,7 @@ GAMING_DASHBOARD_DB = data/gaming_statistics.db
 * Live Player Snapshot
 * Refresh Metadata
 
-### Debugger — คิม
+### Debugger — คิม (นายชิษณุพงศ์ ซู)
 
 * ทดสอบ Database Creation
 * ทดสอบ Insert
@@ -1051,13 +1051,13 @@ GAMING_DASHBOARD_DB = data/gaming_statistics.db
 
 ## Task 5 — Integration
 
-### Planner — ฟลุ๊ค
+### Planner — ฟลุ๊ค (นายภานุวัฒน์ ผองแก้ว)
 
 * ตรวจสอบ Architecture
 * ตรวจสอบ Data Flow
 * ตรวจสอบ Scope
 
-### Coder — ออม
+### Coder — ออม (นายเดโชชิต โตวินัส)
 
 * Connect API
 * Connect Data Processing
@@ -1065,7 +1065,7 @@ GAMING_DASHBOARD_DB = data/gaming_statistics.db
 * Connect Streamlit
 * Implement Service Layer
 
-### Debugger — คิม
+### Debugger — คิม (นายชิษณุพงศ์ ซู)
 
 * Integration Testing
 * Error Flow Testing
@@ -1079,7 +1079,7 @@ GAMING_DASHBOARD_DB = data/gaming_statistics.db
 
 Sprint 2 ดำเนินงานระหว่างวันที่ **20–24 กันยายน 2569**
 
-| วันที่           | Planner — ฟลุ๊ค                                       | Coder — ออม                                                     | Debugger / QA — คิม                               | Daily Update                                                  |
+| วันที่           | Planner — ฟลุ๊ค (นายภานุวัฒน์ ผองแก้ว)                                       | Coder — ออม (นายเดโชชิต โตวินัส)                                                     | Debugger / QA — คิม (นายชิษณุพงศ์ ซู)                               | Daily Update                                                  |
 | ---------------- | ----------------------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------------- |
 | **20 ก.ย. 2569** | ตรวจสอบ Sprint 2 Scope, Architecture และ Requirements | เริ่มปรับโครงสร้าง Project และเตรียม Web Application            | ตรวจสอบ Requirements และเตรียม Test Cases         | **เริ่ม Sprint 2 และเตรียมโครงสร้างสำหรับ Web Application**   |
 | **21 ก.ย. 2569** | ตรวจสอบ Web UI Flow และ API/Data Flow                 | พัฒนา Streamlit Dashboard, Navigation และ RAWG API              | ทดสอบ Web UI และตรวจสอบ API Response              | **Web UI และ RAWG API เริ่มทำงานร่วมกัน**                     |
@@ -1186,7 +1186,7 @@ python -m pytest -q
 
 ---
 
-## 30.1 Planner — ฟลุ๊ค
+## 30.1 Planner — ฟลุ๊ค (นายภานุวัฒน์ ผองแก้ว)
 
 | งานที่รับผิดชอบ     | รายละเอียด                                  |     คะแนน |
 | ------------------- | ------------------------------------------- | --------: |
@@ -1204,7 +1204,7 @@ python -m pytest -q
 
 ---
 
-## 30.2 Coder — ออม
+## 30.2 Coder — ออม (นายเดโชชิต โตวินัส)
 
 | งานที่รับผิดชอบ           | รายละเอียด                                   |     คะแนน |
 | ------------------------- | -------------------------------------------- | --------: |
@@ -1223,7 +1223,7 @@ Database ไปจนถึง Integration ของระบบ
 
 ---
 
-## 30.3 Debugger / QA — คิม
+## 30.3 Debugger / QA — คิม (นายชิษณุพงศ์ ซู)
 
 | งานที่รับผิดชอบ     | รายละเอียด                        |     คะแนน |
 | ------------------- | --------------------------------- | --------: |
@@ -1244,11 +1244,11 @@ Database, Service และ Web Application
 
 # 31. Contribution Summary
 
-| สมาชิก    | Role          | คะแนนที่ได้รับ | คะแนนเต็ม | Completion |
-| --------- | ------------- | -------------: | --------: | ---------: |
-| **ฟลุ๊ค** | Planner       |             50 |        50 |   **100%** |
-| **ออม**   | Coder         |             50 |        50 |   **100%** |
-| **คิม**   | Debugger / QA |             50 |        50 |   **100%** |
+| สมาชิก | ชื่อเล่น | Role          | คะแนนที่ได้รับ | คะแนนเต็ม | Completion |
+| --------- | --- | ------------- | -------------: | --------: | ---------: |
+| นายภานุวัฒน์ ผองแก้ว | ฟลุ๊ค | Planner       |             50 |        50 |   **100%** |
+| นายเดโชชิต โตวินัส | ออม | Coder         |             50 |        50 |   **100%** |
+| นายชิษณุพงศ์ ซู | คิม | Debugger / QA |             50 |        50 |   **100%** |
 
 ### Team Contribution
 

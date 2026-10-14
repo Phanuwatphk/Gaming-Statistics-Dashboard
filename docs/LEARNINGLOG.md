@@ -505,11 +505,11 @@ API / Database
 
 ใน Sprint 2 ทีมมีการหมุนเวียน Role ตามที่กำหนด โดยแบ่งเป็น:
 
-| Role     | Member | Responsibility                                         |
-| -------- | ------ | ------------------------------------------------------ |
-| Planner  | ฟลุ๊ค  | Planning, Requirements, Architecture และ Documentation |
-| Coder    | ออม    | Web UI, API, Database, Service และ Data Processing     |
-| Debugger | คิม    | Testing, QA, Error Handling และ Edge Cases             |
+| สมาชิก | Role     | Member | Responsibility                                         |
+| -------------------- | -------- | ------ | ------------------------------------------------------ |
+| นายภานุวัฒน์ ผองแก้ว | Planner  | ฟลุ๊ค  | Planning, Requirements, Architecture และ Documentation |
+| นายเดโชชิต โตวินัส | Coder    | ออม    | Web UI, API, Database, Service และ Data Processing     |
+| นายชิษณุพงศ์ ซู | Debugger | คิม    | Testing, QA, Error Handling และ Edge Cases             |
 
 ทีมได้เรียนรู้ว่าการแบ่งงานตาม Role
 ช่วยให้แต่ละคนมีความรับผิดชอบที่ชัดเจนมากขึ้น

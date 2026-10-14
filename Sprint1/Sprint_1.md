@@ -57,11 +57,11 @@ Sprint 1 ยังไม่เชื่อมต่อ RAWG API, SQLite หร�
 
 # 3. Team Members & Roles
 
-| สมาชิก | Role | หน้าที่หลัก |
-|---|---|---|
-| **คิม** | Planner | Planning, Requirements, Scope และ Documentation |
-| **ฟลุ๊ค** | Coder | Application Development และ Implementation |
-| **ออม** | Debugger | Testing, QA, Edge Cases และ Bug Verification |
+| สมาชิก | ชื่อเล่น | Role | หน้าที่หลัก |
+|---| --- |---|---|
+| นายชิษณุพงศ์ ซู | คิม | Planner | Planning, Requirements, Scope และ Documentation |
+| นายภานุวัฒน์ ผองแก้ว | ฟลุ๊ค | Coder | Application Development และ Implementation |
+| นายเดโชชิต โตวินัส | ออม | Debugger | Testing, QA, Edge Cases และ Bug Verification |
 
 > Role ดังกล่าวเป็น Role ที่ใช้ในการทำงานของ Sprint 1
 > โดยสมาชิกสามารถหมุนเวียน Role ใน Sprint ถัดไปได้
@@ -245,7 +245,7 @@ Return to Main Menu
 
 ## Phase 1 — Planning
 
-### Planner — คิม
+### Planner — คิม (นายชิษณุพงศ์ ซู)
 
 * กำหนด Sprint Goal
 * กำหนด Scope
@@ -256,13 +256,13 @@ Return to Main Menu
 * กำหนด Local Sample Dataset
 * จัดทำ Documentation
 
-### Coder — ฟลุ๊ค
+### Coder — ฟลุ๊ค (นายภานุวัฒน์ ผองแก้ว)
 
 * ตรวจสอบ Requirements
 * ตรวจสอบความเป็นไปได้ของโครงสร้าง CLI
 * วางโครงสร้าง Function
 
-### Debugger — ออม
+### Debugger — ออม (นายเดโชชิต โตวินัส)
 
 * ตรวจสอบ Requirements
 * ระบุ Edge Cases
@@ -273,7 +273,7 @@ Return to Main Menu
 
 # 10. Development Phase
 
-## Coder — ฟลุ๊ค
+## Coder — ฟลุ๊ค (นายภานุวัฒน์ ผองแก้ว)
 
 พัฒนา:
 
@@ -288,7 +288,7 @@ Return to Main Menu
 * Input Validation
 * Exception Handling
 
-## Planner — คิม
+## Planner — คิม (นายชิษณุพงศ์ ซู)
 
 * ตรวจสอบ Scope
 * ตรวจสอบ Requirements
@@ -296,7 +296,7 @@ Return to Main Menu
 * ตรวจสอบ Documentation
 * ตรวจสอบว่า Implementation สอดคล้องกับ Sprint Goal
 
-## Debugger — ออม
+## Debugger — ออม (นายเดโชชิต โตวินัส)
 
 * ตรวจสอบ Function ที่พัฒนา
 * เตรียม Test Cases
@@ -311,7 +311,7 @@ Return to Main Menu
 Sprint 1 ดำเนินงานระหว่างวันที่ **10–15 กันยายน 2569**
 โดยแบ่งงานตาม Role ของสมาชิก และมีการ Update ความคืบหน้าในแต่ละวันดังนี้
 
-| วันที่ | Planner — คิม | Coder — ฟลุ๊ค | Debugger — ออม | Daily Update |
+| วันที่ | Planner — คิม (นายชิษณุพงศ์ ซู) | Coder — ฟลุ๊ค (นายภานุวัฒน์ ผองแก้ว) | Debugger — ออม (นายเดโชชิต โตวินัส) | Daily Update |
 |---|---|---|---|---|
 | **10 ก.ย. 2569** | กำหนด Sprint Goal, Scope และ Requirements | ศึกษา Requirements และวางโครงสร้าง Code | วิเคราะห์ Test Cases และ Edge Cases ที่ต้องทดสอบ | **เริ่ม Sprint 1 และกำหนดขอบเขตการทำงานของทีม** |
 | **11 ก.ย. 2569** | ออกแบบ CLI Flow, Main Menu และกำหนด Local Dataset | เตรียมโครงสร้าง Function และ Main Program | ออกแบบแนวทางการทดสอบ Function และ Input Validation | **ได้โครงสร้างการทำงานของ CLI และแนวทางการพัฒนา** |
@@ -631,7 +631,7 @@ Input ที่ไม่ถูกต้องได้โดยไม่ Crash
 
 ---
 
-## 16.1 Planner — คิม
+## 16.1 Planner — คิม (นายชิษณุพงศ์ ซู)
 
 | งานที่รับผิดชอบ            | รายละเอียด                                           |     คะแนน |
 | -------------------------- | ---------------------------------------------------- | --------: |
@@ -650,7 +650,7 @@ Input ที่ไม่ถูกต้องได้โดยไม่ Crash
 
 ---
 
-## 16.2 Coder — ฟลุ๊ค
+## 16.2 Coder — ฟลุ๊ค (นายภานุวัฒน์ ผองแก้ว)
 
 | งานที่รับผิดชอบ               | รายละเอียด                                                 |     คะแนน |
 | ----------------------------- | ---------------------------------------------------------- | --------: |
@@ -668,7 +668,7 @@ Input ที่ไม่ถูกต้องได้โดยไม่ Crash
 
 ---
 
-## 16.3 Debugger — ออม
+## 16.3 Debugger — ออม (นายเดโชชิต โตวินัส)
 
 | งานที่รับผิดชอบ    | รายละเอียด                         |     คะแนน |
 | ------------------ | ---------------------------------- | --------: |
@@ -688,11 +688,11 @@ Input ที่ไม่ถูกต้องได้โดยไม่ Crash
 
 # 17. Contribution Summary
 
-| สมาชิก    | Role     | คะแนนที่ได้รับ | คะแนนเต็ม | Completion |
-| --------- | -------- | -------------: | --------: | ---------: |
-| **คิม**   | Planner  |             50 |        50 |   **100%** |
-| **ฟลุ๊ค** | Coder    |             50 |        50 |   **100%** |
-| **ออม**   | Debugger |             50 |        50 |   **100%** |
+| สมาชิก | ชื่อเล่น | Role     | คะแนนที่ได้รับ | คะแนนเต็ม | Completion |
+| --------- | --- | -------- | -------------: | --------: | ---------: |
+| นายชิษณุพงศ์ ซู | คิม | Planner  |             50 |        50 |   **100%** |
+| นายภานุวัฒน์ ผองแก้ว | ฟลุ๊ค | Coder    |             50 |        50 |   **100%** |
+| นายเดโชชิต โตวินัส | ออม | Debugger |             50 |        50 |   **100%** |
 
 ### Team Contribution
 

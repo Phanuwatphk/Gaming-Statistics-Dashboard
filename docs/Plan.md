@@ -12,10 +12,10 @@
 
 | Sprint | ช่วงตามแผน | Planner | Coder | Debugger | งาน |
 |:--|:--|:--|:--|:--|:--|
-| 1 | 10–15 Sep 2026 | คิม | ฟลุ๊ค | ออม | CLI foundation |
-| 2 | 20–24 Sep 2026 | ฟลุ๊ค | ออม | คิม | Web UI, API, SQLite |
-| 3 | 25–29 Sep 2026 | ออม | คิม | ฟลุ๊ค | Analysis, charts, filters, comparison |
-| Final | 2–6 Oct 2026 | คิม | ฟลุ๊ค | ออม | Integration, regression, documentation, delivery |
+| 1 | 10–15 Sep 2026 | คิม (นายชิษณุพงศ์ ซู) | ฟลุ๊ค (นายภานุวัฒน์ ผองแก้ว) | ออม (นายเดโชชิต โตวินัส) | CLI foundation |
+| 2 | 20–24 Sep 2026 | ฟลุ๊ค (นายภานุวัฒน์ ผองแก้ว) | ออม (นายเดโชชิต โตวินัส) | คิม (นายชิษณุพงศ์ ซู) | Web UI, API, SQLite |
+| 3 | 25–29 Sep 2026 | ออม (นายเดโชชิต โตวินัส) | คิม (นายชิษณุพงศ์ ซู) | ฟลุ๊ค (นายภานุวัฒน์ ผองแก้ว) | Analysis, charts, filters, comparison |
+| Final | 2–6 Oct 2026 | คิม (นายชิษณุพงศ์ ซู) | ฟลุ๊ค (นายภานุวัฒน์ ผองแก้ว) | ออม (นายเดโชชิต โตวินัส) | Integration, regression, documentation, delivery |
 
 มีการตรวจและปรับ source เพิ่มเติมวันที่ 13 October 2026 รายงาน Sprint 1–3 เป็นบันทึกประวัติ ไม่ใช่คู่มือติดตั้งของรุ่นปัจจุบัน
 
