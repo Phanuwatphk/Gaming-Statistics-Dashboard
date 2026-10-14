@@ -1,9 +1,9 @@
-# Gaming Statistics Dashboard — Final Sprint Report
+# 🎯 Gaming Statistics Dashboard — Final Sprint Report
 
 **Final Term Project — CP352301 Script Programming**
 
-**ช่วงตามแผน:** 2–6 October 2026
-**วันตรวจ source/เอกสารส่งมอบ:** 13 October 2026
+**ช่วงตามแผน:** 2–6 October 2026  
+**วันตรวจ source/เอกสารส่งมอบ:** 13 October 2026  
 **สถานะ:** ตรวจโค้ดและ QA สำหรับ final commit; commit/push และ submission เป็นขั้นตอนของเจ้าของโปรเจกต์
 
 ## เป้าหมายและบทบาท
@@ -17,6 +17,20 @@
 | ออม | Debugger |
 
 รอบตรวจนี้บันทึกสิ่งที่ยืนยันจาก source และการทดสอบ ไม่ได้ระบุ daily contribution หรือผลการนำเสนอที่ไม่มีหลักฐาน
+
+
+## ขอบเขตงาน Final Sprint
+
+| Workstream | งานที่ยืนยันจาก source และรายงาน QA |
+|:--|:--|
+| Integration | เชื่อม Streamlit UI, RAWG/Steam clients, GameService, SQLite และ Pandas analysis |
+| Stability | จัดการ API failures, malformed data, missing ratings, pagination และ database rollback |
+| Performance | ลดข้อมูลที่ Home ต้องอ่านและใช้ DataFrame ร่วมกันสำหรับสถิติ |
+| Data freshness | แยก RAWG cache 24 ชั่วโมง และ Steam snapshot 15 นาที |
+| Release readiness | ปรับ imports/config, แยก requirements, เพิ่ม CI และทดสอบ clean delivery copy |
+| Documentation | ปรับ README, Plan, Project Pitch, Changelog, Learning Log และรายงาน QA ให้ตรงกับ source |
+
+> ตารางนี้สรุป **ผลที่ตรวจยืนยันได้** ไม่ได้ยืนยันว่าการเปลี่ยนแปลงแต่ละรายการเกิดขึ้นในวันที่ 2–6 ตุลาคมทั้งหมด
 
 ## สิ่งที่ส่งมอบ
 
@@ -51,6 +65,23 @@
 หลักฐาน คำสั่ง จำนวน tests และขอบเขตการตรวจอยู่ใน [Final QA](../docs/FINAL_QA.md) ซึ่งเป็นรายงานอ้างอิงเดียวสำหรับตัวเลขผลตรวจ เพื่อไม่ให้หลายเอกสารระบุจำนวน tests ต่างกัน
 
 การวัดระหว่างปรับประสิทธิภาพด้วยข้อมูลประมาณ 40,000 เกม: การอ่าน Home เดิมประมาณ 1.6 วินาที เทียบ SQL LIMIT ประมาณ 25 ms; การเตรียม/คำนวณสถิติชุดเดียวกันประมาณ 0.79 เทียบ 0.23 วินาที เป็นผลเฉพาะงานข้อมูลในเครื่อง ไม่ใช่ benchmark เวลาโหลดเว็บหรือ SLA
+
+
+## สรุปการทดสอบและเกณฑ์ส่งมอบ
+
+ตามบันทึกการตรวจวันที่ **13 October 2026** ใน `docs/FINAL_QA.md`:
+
+| Check | ผลที่บันทึกไว้ |
+|:--|:--|
+| Automated tests ใน workspace | 128 passed (27.25s) |
+| Automated tests ใน clean delivery copy | 128 passed (26.85s) |
+| Streamlit AppTest | 9 workflows ไม่มี exception |
+| Database snapshot | 40,153 records; SQLite integrity check = `ok` |
+| Compile / dependency check | ผ่านตามรายงาน QA |
+| Local server / health endpoint | ผ่านตามรายงาน QA |
+| GitHub CI และ deployed final commit | ยังไม่มีหลักฐานยืนยันในรอบตรวจ |
+
+**หมายเหตุการตรวจทวนเอกสาร:** ตัวเลขข้างต้นมาจาก QA report ที่แนบอยู่ใน repository ไม่ใช่ผลทดสอบที่สร้างขึ้นใหม่ระหว่างจัดทำเอกสารนี้ ผู้จัดทำเอกสารได้ลองเรียก `python -m pytest -q` ใน environment ปัจจุบัน แต่เริ่มเก็บ tests ไม่ได้เพราะไม่มี `streamlit` ติดตั้ง จึงไม่อ้างว่ารันทดสอบซ้ำสำเร็จ
 
 ## ข้อจำกัดและการส่งมอบ
 

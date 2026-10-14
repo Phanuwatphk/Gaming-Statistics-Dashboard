@@ -4,7 +4,7 @@
 
 เว็บแอป Streamlit สำหรับค้นหา สำรวจ และวิเคราะห์ข้อมูลเกมจาก RAWG พร้อมอันดับผู้เล่นปัจจุบันจาก Steam ข้อมูลที่โหลดสำเร็จเก็บใน SQLite เพื่อใช้เป็น cache และเป็นข้อมูลตั้งต้นหลังแอปเริ่มใหม่
 
-## เริ่มใช้งาน
+## 🚀 เริ่มใช้งาน
 
 ต้องใช้ Python 3.11 ขึ้นไป; CI ตรวจบน Python 3.12
 
@@ -27,7 +27,7 @@ python -m streamlit run src/app.py
 
 `requirements.txt` ใช้สำหรับรันแอป ส่วน `requirements-dev.txt` เพิ่ม pytest สำหรับพัฒนาและทดสอบ ห้ามนำ `.env` หรือ `.streamlit/secrets.toml` เข้า Git
 
-## หน้าและข้อมูลที่แสดง
+## 🎮 หน้าและข้อมูลที่แสดง
 
 | หน้า | การทำงาน |
 |:--|:--|
@@ -108,7 +108,7 @@ python -m src.script.import_games --start-page 1 --pages 1 --database /tmp/gamin
 
 รันไฟล์โดยตรงจากโฟลเดอร์อื่นได้ด้วยพาธเต็ม ดูตัวเลือกทั้งหมดด้วย `--help` จำนวน API requests เพิ่มตามจำนวนหน้า การเพิ่ม threads ไม่ได้ลดโควตาคำขอ
 
-## ทดสอบและตรวจคุณภาพ
+## 🧪 ทดสอบและตรวจคุณภาพ
 
 ~~~bash
 python -m pip check
@@ -121,7 +121,7 @@ Tests ใช้ temporary databases และ mock APIs ไม่ต้องใ
 
 ผลการตรวจส่งมอบอยู่ใน [Final QA](docs/FINAL_QA.md) และ [Final Sprint report](<Final Sprint/Final_Sprint.md>) CI ใช้คำสั่ง compile/pytest เดียวกันเมื่อ push ไป `main`, `sprint-1`, `sprint-2`, `sprint-3` หรือ `final-sprint` และเมื่อเปิด PR ไป `main`
 
-## Deploy บน Streamlit Community Cloud
+## ☁️ Deploy บน Streamlit Community Cloud
 
 เลือก repository/branch ที่ต้องการและ entry point `src/app.py` ระบบติดตั้ง runtime dependencies จาก `requirements.txt` ตั้ง `RAWG_API_KEY` เป็น environment variable ของ process; หากใช้ Streamlit Secrets ให้ใช้ส่วน root TOML แทน section แบบซ้อน ตัวแปร interval และ database override ตั้งได้แบบเดียวกัน
 
@@ -137,7 +137,7 @@ CATALOG_REFRESH_HOURS = 24
 
 `data/gaming_statistics.db` เป็น snapshot ตั้งต้นที่ติดตามใน Git การแก้ข้อมูลบน instance ไม่ถูกส่งกลับ GitHub อัตโนมัติ เมื่อ environment ถูกสร้างใหม่ ข้อมูลที่เพิ่มหลัง snapshot อาจต้องโหลดใหม่ หากต้องการเก็บข้อมูลใหม่ถาวรต้องใช้ storage ภายนอกหรืออัปเดต snapshot แยกจากการรันแอป
 
-## โครงสร้าง
+## 📁 โครงสร้าง
 
 ~~~text
 src/
@@ -157,7 +157,7 @@ docs/                      เอกสารปัจจุบันและ�
 
 CLI ของ Sprint 1 อยู่ใน `src/lagacy/` เพื่อเก็บประวัติการพัฒนา ไม่ใช่ entry point ของเว็บแอป ส่วนสคริปต์ import ใน `src/script/` เป็นเครื่องมือที่ดูแลอยู่ ทั้งสองโฟลเดอร์ไม่ถูก ignore
 
-## ทีมและ Sprint
+## 👥 ทีมและ Sprint
 
 | สมาชิก | Sprint 1 | Sprint 2 | Sprint 3 | Final Sprint |
 |:--|:--|:--|:--|:--|
@@ -174,7 +174,7 @@ CLI ของ Sprint 1 อยู่ใน `src/lagacy/` เพื่อเก็
 
 โค้ดและเอกสารเตรียมสำหรับ final commit; การ commit/push และส่งงานเป็นขั้นตอนของเจ้าของโปรเจกต์ รายงาน Sprint 1–3 เก็บรายละเอียดตามช่วงที่พัฒนา ให้ใช้ README นี้สำหรับพฤติกรรมรุ่นปัจจุบัน
 
-## เอกสารและแหล่งข้อมูล
+## 📚 เอกสารและแหล่งข้อมูล
 
 - [Project pitch](docs/Project_Pitch.md)
 - [Project plan](docs/Plan.md)
@@ -184,7 +184,7 @@ CLI ของ Sprint 1 อยู่ใน `src/lagacy/` เพื่อเก็
 - Game data/images: [RAWG](https://rawg.io), [API documentation and terms](https://rawg.io/apidocs)
 - Live player data: [Steam](https://store.steampowered.com/charts/mostplayed)
 
-## ขอบเขตและข้อจำกัด
+## ⚠️ ขอบเขตและข้อจำกัด
 
 Statistics วิเคราะห์เฉพาะเกมใน SQLite ไม่ใช่ทั้งฐาน RAWG Genre/platform เป็นหลายค่าต่อเกม สัดส่วนจึงหารด้วยจำนวน assignments ไม่ใช่จำนวนเกม Steam Top อาจไม่ครบ 100 เกมหากบางรายการไม่มีข้อมูล คะแนนจาก RAWG และ Metacritic เป็นคนละแหล่ง
 
