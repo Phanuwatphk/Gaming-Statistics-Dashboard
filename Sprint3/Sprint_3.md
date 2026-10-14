@@ -1472,7 +1472,7 @@ Contribution Score ไม่ได้ถูกกำหนดไว้ใน Sou
 | งานที่รับผิดชอบ         | รายละเอียด                               |      คะแนน |
 | ----------------------- | ---------------------------------------- | ---------: |
 | Test Case Design        | ออกแบบ Test Cases สำหรับ Sprint 3        |     10 / 10 |
-| Data Quality Testing    | ตรวจสอบ Data Processing และ Data Quality |     —10 / 10 |
+| Data Quality Testing    | ตรวจสอบ Data Processing และ Data Quality |     10 / 10 |
 | Statistics Verification | ตรวจสอบผลการคำนวณ Statistics             |     10 / 10 |
 | Integration Testing     | ตรวจสอบการทำงานร่วมกันของระบบ            |     10 / 10 |
 | Bug Verification        | ตรวจสอบ Error และผลหลังแก้ไข             |     10 / 10 |
